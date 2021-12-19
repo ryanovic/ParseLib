@@ -227,13 +227,13 @@
 
         private static bool IsLineBreakSensitiveOnReduce(Production production)
         {
-            if (production.ReduceOn == null)
+            if (production.Lookaheads == null)
             {
                 return false;
             }
 
-            return production.ReduceOn.Contains(Symbol.LineBreak)
-                || production.ReduceOn.Contains(Symbol.NoLineBreak);
+            return production.Lookaheads.Contains(Symbol.LineBreak)
+                || production.Lookaheads.Contains(Symbol.NoLineBreak);
         }
     }
 }

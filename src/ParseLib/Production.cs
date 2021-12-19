@@ -3,19 +3,20 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using ParseLib.LALR;
 
     public sealed class Production
     {
         private readonly ProductionItem[] items;
-        private Dictionary<Symbol, bool> resolveOn;
-        private HashSet<Symbol> reduceOn;
+        private Dictionary<Symbol, ParserAction> resolveOn;
+        private HashSet<Symbol> lookaheads;
 
         public Symbol Head { get; }
         public string Name { get; }
         public int Size => items.Length - 1;
         public Symbol this[int index] => items[index].Symbol;
-        public ISet<Symbol> ReduceOn => reduceOn;
-        public IDictionary<Symbol, bool> ResolveOn => resolveOn;
+        public ISet<Symbol> Lookaheads => lookaheads;
+        public IDictionary<Symbol, ParserAction> ResolveOn => resolveOn;
 
         public Production(Symbol head, string name, Symbol[] symbols)
         {
@@ -26,25 +27,35 @@
 
         public LineBreakModifier GetLineBreakModifier(int index) => items[index].LineBreak;
 
-        public void SetReduceOn(params Symbol[] symbols)
+        public void OverrideLookaheads(params Symbol[] symbols)
         {
-            if (reduceOn == null)
+            if (lookaheads == null)
             {
-                reduceOn = new HashSet<Symbol>(symbols);
+                lookaheads = new HashSet<Symbol>(symbols);
                 return;
             }
 
-            reduceOn.UnionWith(symbols);
+            lookaheads.UnionWith(symbols);
         }
 
-        public void SetResolveOn(Symbol symbol, bool preferReduce)
+        public void ReduceOn(Symbol symbol)
         {
             if (resolveOn == null)
             {
-                resolveOn = new Dictionary<Symbol, bool>();
+                resolveOn = new Dictionary<Symbol, ParserAction>();
             }
 
-            resolveOn.Add(symbol, preferReduce);
+            resolveOn.Add(symbol, ParserAction.Reduce);
+        }
+
+        public void ShiftOn(Symbol symbol)
+        {
+            if (resolveOn == null)
+            {
+                resolveOn = new Dictionary<Symbol, ParserAction>();
+            }
+
+            resolveOn.Add(symbol, ParserAction.Shift);
         }
 
         public override string ToString() => Name;

@@ -20,7 +20,7 @@
 
             foreach (var symbol in Grammar.GetSymbols(lookaheads))
             {
-                Production.SetResolveOn(symbol, preferReduce: false);
+                Production.ShiftOn(symbol);
             }
 
             return this;
@@ -32,7 +32,7 @@
 
             foreach (var symbol in Grammar.GetSymbols(lookaheads))
             {
-                Production.SetResolveOn(symbol, preferReduce: true);
+                Production.ReduceOn(symbol);
             }
 
             return this;
@@ -41,7 +41,8 @@
         public ProductionBuilder OverrideLookaheads(params object[] lookaheads)
         {
             if (lookaheads == null) throw new ArgumentNullException(nameof(lookaheads));
-            Production.SetReduceOn(Grammar.GetSymbols(lookaheads));
+
+            Production.OverrideLookaheads(Grammar.GetSymbols(lookaheads));
             return this;
         }
     }

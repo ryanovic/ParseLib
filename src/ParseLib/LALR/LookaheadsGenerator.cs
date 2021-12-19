@@ -69,7 +69,7 @@
 
             if ((final.LineBreak | next.LineBreak) != LineBreakModifier.Forbidden)
             {
-                var filter = production.ReduceOn;
+                var filter = production.Lookaheads;
 
                 if (filter != null)
                 {

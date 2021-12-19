@@ -14,9 +14,9 @@
         /// <inheritdoc/>
         public virtual ParserAction ResolveShiftConflict(Symbol symbol, Production production)
         {
-            if (production.ResolveOn != null && production.ResolveOn.TryGetValue(symbol, out var preferReduce))
+            if (production.ResolveOn != null && production.ResolveOn.TryGetValue(symbol, out var action))
             {
-                return preferReduce ? ParserAction.Reduce : ParserAction.Shift;
+                return action;
             }
 
             throw new GrammarException("Grammar contains unresolved shift-reduce conflict.", symbol, production);
