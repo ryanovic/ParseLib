@@ -230,5 +230,19 @@
             Assert.Null(GetTransition(state, '0'));
             Assert.NotNull(state.Default);
         }
+
+        [Fact]
+        public void Creates_Shared_State_For_Same_Token()
+        {
+            var a = new Terminal("a", Rex.Char('a'), 0);
+            var b = new Terminal("b", Rex.Char('b'), 1);
+            var c = new Terminal("c", Rex.Char('c'), 2);
+
+            var builder = new LexicalStatesBuilder();
+            var state_ab = builder.CreateStates(new[] { a, b });
+            var state_bc = builder.CreateStates(new[] { b, c });
+
+            Assert.Equal(GetTransition(state_ab, 'b'), GetTransition(state_bc, 'b'));
+        }
     }
 }
