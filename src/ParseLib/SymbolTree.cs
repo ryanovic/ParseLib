@@ -3,13 +3,13 @@
     using System;
     using System.Collections.Generic;
 
-    internal sealed class SymbolTrie<T>
+    internal sealed class SymbolTree<T>
     {
-        private readonly Dictionary<Symbol, SymbolTrie<T>> next = new Dictionary<Symbol, SymbolTrie<T>>();
+        private readonly Dictionary<Symbol, SymbolTree<T>> next = new Dictionary<Symbol, SymbolTree<T>>();
 
         public T Data { get; set; }
 
-        public SymbolTrie<T> GetPrefix(Symbol[] prefix)
+        public SymbolTree<T> GetPrefix(Symbol[] prefix)
         {
             var node = this;
 
@@ -26,7 +26,7 @@
             return node;
         }
 
-        public SymbolTrie<T> EnsurePrefix(Symbol[] prefix)
+        public SymbolTree<T> EnsurePrefix(Symbol[] prefix)
         {
             var node = this;
 
@@ -34,7 +34,7 @@
             {
                 if (!node.next.TryGetValue(prefix[i], out var next))
                 {
-                    next = new SymbolTrie<T>();
+                    next = new SymbolTree<T>();
                     node.next.Add(prefix[i], next);
                 }
 

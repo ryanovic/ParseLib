@@ -53,13 +53,13 @@
 
         private readonly Dictionary<string, MethodInfo> tokenReducers;
         private readonly Dictionary<string, MethodInfo> productionReducers;
-        private readonly SymbolTrie<MethodInfo> prefixes;
+        private readonly SymbolTree<MethodInfo> prefixes;
 
         public ParserReducer()
         {
             this.tokenReducers = new Dictionary<string, MethodInfo>();
             this.productionReducers = new Dictionary<string, MethodInfo>();
-            this.prefixes = new SymbolTrie<MethodInfo>();
+            this.prefixes = new SymbolTree<MethodInfo>();
         }
 
         public MethodInfo GetPrefixHandler(Symbol[] symbols)
