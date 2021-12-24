@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection.Emit;
-using ParseLib;
-using ParseLib.Runtime;
-
-namespace Calculator
+﻿namespace Calculator
 {
+    using System;
+    using System.Reflection.Emit;
+    using ParseLib.Runtime;
+
     public abstract class ExpressionParser : StringParser
     {
         private readonly DynamicMethod method;
@@ -24,6 +21,9 @@ namespace Calculator
             return (Func<int, int, int>)method.CreateDelegate(typeof(Func<int, int, int>));
         }
 
+        // None of the token \ production reducers accepts or returns a value.
+        // Means no value will be placed on the stack at any point in this kind of parser.
+        // It just maps source text to appropriate IL instructions.
         [CompleteToken("a")]
         protected void CompleteArg_A() => il.Emit(OpCodes.Ldarg_0);
 

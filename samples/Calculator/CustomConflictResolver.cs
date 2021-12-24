@@ -1,13 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ParseLib;
-using ParseLib.LALR;
-
-namespace Calculator
+﻿namespace Calculator
 {
+    using ParseLib;
+    using ParseLib.LALR;
+
     public class CustomConflictResolver : ConflictResolver
     {
+        // Mutual operators priorities can be defined as a shift-reduce conflict:
+        // expr -> expr  + expr . (reduce on '*')
+        // expr -> expr .* expr
+        // Same for operator associativity we have some state with:
+        // expr -> expr  + expr . (reduce on '+')
+        // expr -> expr .+ expr
+        // Hence, by specifying a correct action for every (production, symbol) pair we can configure both. 
         public override ParserAction ResolveShiftConflict(Symbol symbol, Production production)
         {
             switch (production.Name)
