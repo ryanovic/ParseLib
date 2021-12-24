@@ -3,7 +3,7 @@ using System.IO;
 using System.Xml;
 using ParseLib;
 
-namespace HtmlParser
+namespace Html2Xml
 {
     class Program
     {
@@ -31,19 +31,17 @@ namespace HtmlParser
         {
             var ws = Rex.Char(@" \t\r\n");
             var name_char = Rex.Char(@"a-z0-9-_");
-
-            var text_char = Rex.IfNot(Rex.Or(
-                Rex.Text("<!--"),
-                Rex.Char('<').Then(name_char),
-                Rex.Text("</").Then(name_char))).Then(Rex.AnyChar);
             var script_char = Rex.IfNot("</script").Then(Rex.AnyChar);
 
-            var tag_open = Rex.Char('<').Then(name_char.OneOrMore());
-            var tag_close = Rex.Text("</").Then(name_char.OneOrMore());
+            var text_char = Rex.IfNot(Rex.Or(
+                    Rex.Text("<!--"),
+                    Rex.Char('<').Then(name_char),
+                    Rex.Text("</").Then(name_char)))
+                .Then(Rex.AnyChar);
 
             var grammar = new Grammar(ignoreCase: true);
 
-            grammar.CreateNonTerminals("node", "nodes", "tag", "attr", "attrs");
+            grammar.CreateNonTerminals("node", "nodes", "attr", "attrs");
             grammar.CreateTerminals("=", "/>", ">", "<script", "</script");
             grammar.CreateWhitespace("ws", ws.OneOrMore());
 
@@ -51,8 +49,8 @@ namespace HtmlParser
             grammar.CreateTerminal("node:text", text_char.OneOrMore());
 
             grammar.CreateTerminal("%script%", script_char.OneOrMore());
-            grammar.CreateTerminal("<tag", tag_open);
-            grammar.CreateTerminal("</tag", tag_close);
+            grammar.CreateTerminal("<tag", Rex.Char('<').Then(name_char.OneOrMore()));
+            grammar.CreateTerminal("</tag", Rex.Text("</").Then(name_char.OneOrMore()));
             grammar.CreateTerminal("attr-name", name_char.OneOrMore());
             grammar.CreateTerminal("attr-value-raw", name_char.OneOrMore());
             grammar.CreateTerminal("attr-value-str", Rex.Char('"').Then(Rex.AnyText).Then('"'), lazy: true);

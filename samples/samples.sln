@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParseLib", "..\src\ParseLib\ParseLib.csproj", "{3427E58A-B018-4658-813A-3817F5928A9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HtmlParser", "HtmlParser\HtmlParser.csproj", "{B839BC13-5FC1-41A6-9916-D9885AE7BD4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Html2Xml", "HtmlSample\Html2Xml.csproj", "{B839BC13-5FC1-41A6-9916-D9885AE7BD4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calculator", "Calculator\Calculator.csproj", "{15DA33CF-6C82-4EE6-B2FB-E123202FD54B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{B839BC13-5FC1-41A6-9916-D9885AE7BD4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B839BC13-5FC1-41A6-9916-D9885AE7BD4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B839BC13-5FC1-41A6-9916-D9885AE7BD4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15DA33CF-6C82-4EE6-B2FB-E123202FD54B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15DA33CF-6C82-4EE6-B2FB-E123202FD54B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15DA33CF-6C82-4EE6-B2FB-E123202FD54B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15DA33CF-6C82-4EE6-B2FB-E123202FD54B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml;
 using ParseLib.Runtime;
 
-namespace HtmlParser
+namespace Html2Xml
 {
     public abstract class HtmlParser : TextParser
     {
@@ -23,7 +23,7 @@ namespace HtmlParser
         protected XmlNode CreateComment() => Document.CreateComment(GetLexeme(trimLeft: 4, trimRight: 3));
 
         [CompleteToken("text")]
-        protected XmlNode CreateText() => Document.CreateTextNode(WebUtility.UrlDecode(GetLexeme()));
+        protected XmlNode CreateText() => Document.CreateTextNode(WebUtility.HtmlDecode(GetLexeme()));
 
         [CompleteToken("%script%")]
         protected XmlNode CreateScript() => Document.CreateCDataSection(GetLexeme());
