@@ -67,13 +67,6 @@
 
         protected abstract bool Read(int bufferPosition, char[] buffer, int offset, int length, bool endOfSource);
 
-        protected override string GetLexeme()
-        {
-            return CurrentPosition > StartPosition
-                ? new String(Buffer, StartPosition - BufferPosition, CurrentPosition - StartPosition)
-                : null;
-        }
-
         protected string GetLexeme(int trimLeft, int trimRight)
         {
             var start = StartPosition + trimLeft;
@@ -85,6 +78,8 @@
         }
 
         protected string GetLexeme(int trim) => GetLexeme(trim, trim);
+
+        protected override string GetLexeme() => GetLexeme(0, 0);
 
         private int ShfitBuffer()
         {

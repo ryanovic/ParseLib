@@ -30,11 +30,18 @@
 
         protected abstract void Read(string content, int offset, int length);
 
-        protected override string GetLexeme()
+        protected string GetLexeme(int trimLeft, int trimRight)
         {
-            return CurrentPosition > StartPosition
-                ? Content.Substring(StartPosition, CurrentPosition - StartPosition)
+            var start = StartPosition + trimLeft;
+            var end = CurrentPosition - trimRight;
+
+            return start < end
+                ? Content.Substring(start, end - start)
                 : null;
         }
+
+        protected string GetLexeme(int trim) => GetLexeme(trim, trim);
+
+        protected override string GetLexeme() => GetLexeme(0, 0);
     }
 }
