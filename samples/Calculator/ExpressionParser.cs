@@ -21,18 +21,23 @@
             return (Func<int, int, int>)method.CreateDelegate(typeof(Func<int, int, int>));
         }
 
-        // None of the token \ production reducers accepts or returns a value.
-        // Means no value will be placed on the stack at any point in this kind of parser.
-        // It just maps source text to appropriate IL instructions.
-        [CompleteToken("a")]
-        protected void CompleteArg_A() => il.Emit(OpCodes.Ldarg_0);
-
-        [CompleteToken("b")]
-        protected void CompleteArg_B() => il.Emit(OpCodes.Ldarg_1);
-
+        // Gets num int value and puts it on the stack.
         [CompleteToken("num")]
-        protected void CompleteNumber() => il.Emit(OpCodes.Ldc_I4, Int32.Parse(GetLexeme()));
+        protected int CompleteNumber() => Int32.Parse(GetLexeme());
 
+        // Reduces 'expr -> a' production. 
+        [Reduce("expr:a")]
+        protected void LoadArg_A() => il.Emit(OpCodes.Ldarg_0);
+
+        // In this particular parser same action can be performed in CompleteToken('b') handler with same result generated.
+        [Reduce("expr:b")]
+        protected void LoadArg_B() => il.Emit(OpCodes.Ldarg_1);
+
+        // Gets num value from the top and puts it on evaluation stack.
+        [Reduce("expr:num")]
+        protected void LoadNum(int num) => il.Emit(OpCodes.Ldc_I4, num);
+
+        // Maps rule to appropriate IL instruction.
         [Reduce("expr:add")]
         protected void Add() => il.Emit(OpCodes.Add);
 
