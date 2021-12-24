@@ -6,7 +6,7 @@ namespace ParseLib.Text
 {
     internal sealed class RexAccept : RexNode
     {
-        internal override bool Nullable => false;
+        public override bool Nullable => false;
         public bool IsLazy { get; }
         public bool IsLookahead { get; }
 

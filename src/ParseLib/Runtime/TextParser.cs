@@ -74,6 +74,18 @@
                 : null;
         }
 
+        protected string GetLexeme(int trimLeft, int trimRight)
+        {
+            var start = StartPosition + trimLeft;
+            var end = CurrentPosition - trimRight;
+
+            return start < end
+                ? new string(Buffer, start - BufferPosition, end - start)
+                : null;
+        }
+
+        protected string GetLexeme(int trim) => GetLexeme(trim, trim);
+
         private int ShfitBuffer()
         {
             var currentLength = CurrentPosition - StartPosition;

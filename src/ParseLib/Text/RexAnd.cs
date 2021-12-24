@@ -6,7 +6,7 @@
 
     internal sealed class RexAnd : RexNode
     {
-        internal override bool Nullable => this.Left.Nullable && this.Right.Nullable;
+        public override bool Nullable => this.Left.Nullable && this.Right.Nullable;
         public RexNode Left { get; }
         public RexNode Right { get; }
 

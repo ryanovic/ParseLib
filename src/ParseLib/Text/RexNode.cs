@@ -5,7 +5,7 @@
 
     public abstract class RexNode
     {
-        internal abstract bool Nullable { get; }
+        public abstract bool Nullable { get; }
 
         public RexNode Optional() => new RexOptional(this);
 

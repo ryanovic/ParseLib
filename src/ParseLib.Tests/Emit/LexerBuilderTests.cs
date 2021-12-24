@@ -25,7 +25,7 @@
 
             terminals = new List<Terminal>();
 
-            var cmnt_char = Rex.IfNot("-->").Then(CharSet.Any);
+            var cmnt_char = Rex.IfNot("-->").Then(Rex.AnyChar);
             var cmnt_expr = Rex.Text("<!--").Then(cmnt_char.NoneOrMore()).Then("-->");
 
             AddTerminal("ws", Rex.Char(' ').OneOrMore());

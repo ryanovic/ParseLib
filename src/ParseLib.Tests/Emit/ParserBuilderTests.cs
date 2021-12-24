@@ -36,7 +36,7 @@ namespace ParseLib.Emit
             var module = assembly.DefineDynamicModule(assemblyName.Name);
 
             var cmnt_char = Rex.Except('\n');
-            var cmnt_char_lb = Rex.Char(CharSet.Any);
+            var cmnt_char_lb = Rex.AnyChar;
 
             grammar = new Grammar();
             grammar.CreateNonTerminals("S", "A", "B", "C", "D", "CC");

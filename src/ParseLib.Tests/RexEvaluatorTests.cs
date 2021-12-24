@@ -277,7 +277,7 @@
         [InlineData("xxxx -->")]
         public void Matches_IfNot_Expression(string input)
         {
-            var eval = Rex.Compile(Rex.IfNot("-->").Then(CharSet.Any).NoneOrMore());
+            var eval = Rex.Compile(Rex.IfNot("-->").Then(Rex.AnyChar).NoneOrMore());
 
             Assert.Equal(input.Length - 3, eval(input, 0, input.Length));
         }
@@ -359,7 +359,7 @@
         [InlineData(@"'\\'")]
         public void Matches_String_With_Escape_Sequence_Expression(string input)
         {
-            var str_char = Rex.Except('\'').Or(Rex.Char('\\').Then(CharSet.Any));
+            var str_char = Rex.Except('\'').Or(Rex.Char('\\').Then(Rex.AnyChar));
             var str = Rex.Char('\'').Then(str_char.NoneOrMore()).Then('\'');
             var eval = Rex.Compile(str);
 

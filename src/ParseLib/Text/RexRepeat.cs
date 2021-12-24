@@ -6,7 +6,7 @@
 
     internal sealed class RexRepeat : RexNode
     {
-        internal override bool Nullable => true;
+        public override bool Nullable => true;
         public RexNode Node { get; }
 
         public RexRepeat(RexNode node)

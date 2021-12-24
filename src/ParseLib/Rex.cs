@@ -11,6 +11,10 @@
 
     public static class Rex
     {
+        public static RexNode AnyChar { get; } = new RexChar(CharSet.Any);
+
+        public static RexNode AnyText { get; } = AnyChar.NoneOrMore();
+
         public static RexNode Text(string text)
         {
             return text.Select(ch => Char(ch)).Aggregate((a, b) => new RexAnd(a, b));

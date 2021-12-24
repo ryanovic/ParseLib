@@ -4,7 +4,7 @@
 
     internal sealed class RexSentinel : RexNode
     {
-        internal override bool Nullable => false;
+        public override bool Nullable => false;
         public RexNode Lookahead { get; }
         public bool Positive { get; }
 

@@ -6,7 +6,7 @@
 
     internal sealed class RexChar : RexNode
     {
-        internal override bool Nullable => false;
+        public override bool Nullable => false;
         public CharSet Set { get; }
 
         public RexChar(CharSet set)

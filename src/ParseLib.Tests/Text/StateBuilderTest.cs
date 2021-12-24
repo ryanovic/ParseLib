@@ -72,7 +72,7 @@
                 Rex.Char('a'),
                 Rex.Char('b'),
                 Rex.Char("a-z"),
-                Rex.Char(CharSet.Any)));
+                Rex.AnyChar));
 
             for (int i = 1; i < state.Ranges.Length; i++)
             {
