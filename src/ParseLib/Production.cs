@@ -100,7 +100,7 @@
 
                 if (lineBreak == LineBreakModifier.Forbidden)
                 {
-                    throw new InvalidOperationException("Can't use [LB] and [NoLB] simultaneously.");
+                    throw new InvalidOperationException(Errors.LineBreakForbidden());
                 }
             }
 
@@ -115,7 +115,7 @@
                     case SymbolType.EndOfProduction:
                         break;
                     default:
-                        throw new InvalidOperationException($"{symbol.Name} is not allowed in the production body.");
+                        throw new InvalidOperationException(Errors.SymbolNotAllowed(symbol.Name));
                 }
             }
         }

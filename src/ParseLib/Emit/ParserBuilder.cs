@@ -55,7 +55,7 @@
 
             if (Target.BaseType == null || !Target.BaseType.IsSubclassOf(typeof(ParserBase)))
             {
-                throw new InvalidOperationException("Target base type is expected to be inherited from the ParserBase.");
+                throw new InvalidOperationException(Errors.ParserBaseExpected());
             }
 
             this.handleEosMthd = target.DefineMethod("HandleEndOfSource", MethodAttributes.Private, typeof(void), Type.EmptyTypes);
@@ -132,10 +132,10 @@
             StartPosition.Load(il);
             CurrentPosition.Load(il);
             il.Emit(OpCodes.Beq, handleEos);
-            ThrowParserException(il, "Unexpected end of source encountered.");
+            ThrowParserException(il, Errors.UnexpectedEndOfSoruce());
 
             il.MarkLabel(unexpectedChar);
-            ThrowParserException(il, "Unexpected character encountered.");
+            ThrowParserException(il, Errors.UnexpectedCharacter());
 
             il.MarkLabel(handleEos);
             il.Emit(OpCodes.Ldarg_0);
@@ -222,7 +222,7 @@
             il.MarkLabel(start);
             stateStack.Peek(il, 0);
             il.Emit(OpCodes.Switch, labels);
-            il.ThrowInvalidOperationException("Invalid state encountered.");
+            il.ThrowInvalidOperationException(Errors.InvalidState());
 
             for (int i = 0; i < States.Length; i++)
             {
@@ -249,7 +249,7 @@
             }
             else
             {
-                ThrowParserException(il, "Unexpected end of source encountered.");
+                ThrowParserException(il, Errors.UnexpectedEndOfSoruce());
             }
         }
 
@@ -260,7 +260,7 @@
 
             il.Emit(OpCodes.Ldarg_1); // token Id
             il.Emit(OpCodes.Switch, labels);
-            il.ThrowArgumentOutOfRangeException("tokenId", "The token is out of range.");
+            il.ThrowArgumentOutOfRangeException("tokenId", Errors.TokenOutOfRange());
 
             for (int i = 0; i < labels.Length; i++)
             {
@@ -300,7 +300,7 @@
             stateStack.Peek(il, 0);
 
             il.Emit(OpCodes.Switch, labels);
-            il.ThrowInvalidOperationException("Invalid state encountered.");
+            il.ThrowInvalidOperationException(Errors.InvalidState());
 
             for (int i = 0; i < States.Length; i++)
             {
@@ -342,7 +342,7 @@
             il.MarkLabel(defaultLabel);
             ThrowParserException(il, () =>
             {
-                il.Emit(OpCodes.Ldstr, "'{0}' terminal is not valid due to the current state of the parser.");
+                il.Emit(OpCodes.Ldstr, Errors.InvalidTerminal("{0}"));
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Call, getTerminalNameMthd);
@@ -449,7 +449,7 @@
             // Read most recent state.
             stateStack.Peek(il, 0);
             il.Emit(OpCodes.Switch, labels);
-            il.ThrowInvalidOperationException("Invalid state encountered.");
+            il.ThrowInvalidOperationException(Errors.InvalidState());
 
             for (int i = 0; i < States.Length; i++)
             {
@@ -492,7 +492,7 @@
             il.MarkLabel(defaultLabel);
             ThrowParserException(il, () =>
             {
-                il.Emit(OpCodes.Ldstr, "'{0}' non-terminal is not valid due to the current state of the parser.");
+                il.Emit(OpCodes.Ldstr, Errors.InvalidNonTerminal("{0}"));
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Call, getNonTerminalNameMthd);

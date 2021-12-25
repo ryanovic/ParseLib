@@ -26,7 +26,18 @@
             AddSymbol(Symbol.EndOfSource);
         }
 
-        public Symbol this[string name] => Symbols[name];
+        public Symbol this[string name]
+        {
+            get
+            {
+                if (Symbols.TryGetValue(name, out var symbol))
+                {
+                    return symbol;
+                }
+
+                throw new KeyNotFoundException(Errors.SymbolNotFound(name));
+            }
+        }
 
         public bool Contains(string name) => Symbols.ContainsKey(name);
 
@@ -45,7 +56,7 @@
                 return nonTerminal;
             }
 
-            throw new InvalidOperationException($"{symbol.Name} expected to be a non-terminal.");
+            throw new InvalidOperationException(Errors.NonTerminalExpected(symbol.Name));
         }
 
         public Terminal GetTerminal(string name)
@@ -57,7 +68,7 @@
                 return terminal;
             }
 
-            throw new InvalidOperationException($"{symbol.Name} expected to be a terminal.");
+            throw new InvalidOperationException(Errors.TerminalExpected(symbol.Name));
         }
 
         public Terminal[] GetTerminals()

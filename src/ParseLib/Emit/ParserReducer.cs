@@ -26,7 +26,7 @@
                 {
                     if (!(skipValidation || grammar.ContainsTerminal(attr.Token)))
                     {
-                        throw new InvalidOperationException($"'{attr.Token}' is not defined on the grammar.");
+                        throw new InvalidOperationException(Errors.TokenNotFound(attr.Token));
                     }
 
                     reducer.AddTokenReducer(attr.Token, method);
@@ -36,7 +36,7 @@
                 {
                     if (!(skipValidation || grammar.ContainsRule(attr.Production)))
                     {
-                        throw new InvalidOperationException($"'{attr.Production}' is not defined on the grammar.");
+                        throw new InvalidOperationException(Errors.ProductionNotFound(attr.Production));
                     }
 
                     reducer.AddProductionReducer(attr.Production, method);
@@ -98,7 +98,7 @@
 
             if (node.Data != null)
             {
-                throw new InvalidOperationException($"{Symbol.ToString(symbols)}: prefix handler is already defined.");
+                throw new InvalidOperationException(Errors.PrefixDefined(Symbol.ToString(symbols)));
             }
 
             node.Data = handler;
@@ -108,7 +108,7 @@
         {
             if (productionReducers.ContainsKey(productionName))
             {
-                throw new InvalidOperationException($"{productionName}: reducer is already defined.");
+                throw new InvalidOperationException(Errors.ReducerDefined(productionName));
             }
 
             productionReducers.Add(productionName, reducer);
@@ -118,12 +118,12 @@
         {
             if (reducer.GetParameters().Length > 0)
             {
-                throw new InvalidOperationException($"{tokenName}: token reducer should be parameterless.");
+                throw new InvalidOperationException(Errors.ExpectedParameterlessReducer(tokenName));
             }
 
             if (tokenReducers.ContainsKey(tokenName))
             {
-                throw new InvalidOperationException($"{tokenName}: reducer is already defined.");
+                throw new InvalidOperationException(Errors.ReducerDefined(tokenName));
             }
 
             tokenReducers.Add(tokenName, reducer);

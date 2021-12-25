@@ -65,7 +65,7 @@
         {
             if (count == 0)
             {
-                throw new InvalidOperationException("Can't replace zero sized sub-array.");
+                throw new InvalidOperationException(Errors.ZeroSubArray());
             }
 
             list.Load(il);

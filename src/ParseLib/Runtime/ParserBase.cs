@@ -23,7 +23,7 @@
         {
             if (!IsCompleted)
             {
-                throw new InvalidOperationException("Can't get the result until source is not entirely processed.");
+                throw new InvalidOperationException(Errors.ParserNotCompleted());
             }
 
             return GetTopValue();
@@ -45,7 +45,7 @@
 
         protected virtual ParserException CreateParserException(Exception innerException)
         {
-            var error = new ParserException("Exception has occurred.", innerException);
+            var error = new ParserException(Errors.ExceptionOccurred(), innerException);
             PopulateExceptionDetails(error);
             return error;
         }

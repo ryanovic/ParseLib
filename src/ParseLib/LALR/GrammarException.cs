@@ -21,8 +21,7 @@
         {
         }
 
-        public GrammarException(string message, Symbol symbol, params Production[] productions)
-            : base(message)
+        public GrammarException(string message, Symbol symbol, params Production[] productions) : base(message)
         {
             if (symbol != null)
             {

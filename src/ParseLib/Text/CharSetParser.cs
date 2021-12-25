@@ -104,7 +104,7 @@
                 {
                     if (embedded)
                     {
-                        throw new InvalidOperationException("Invalid embedded pattern.");
+                        throw CreateException(Errors.InvalidPattern());
                     }
 
                     CompleteRange();
@@ -123,14 +123,14 @@
             {
                 if (Read() != ']')
                 {
-                    throw new InvalidOperationException("Invalid embedded pattern.");
+                    throw CreateException(Errors.InvalidPattern());
                 }
             }
             else
             {
                 if (position != pattern.Length)
                 {
-                    throw new InvalidOperationException("Invalid pattern.");
+                    throw CreateException(Errors.InvalidPattern());
                 }
             }
         }
@@ -139,7 +139,7 @@
         {
             switch (Read())
             {
-                case (char)0: throw new InvalidOperationException("Invalid escape character.");
+                case (char)0: throw CreateException(Errors.InvalidPattern());
                 case 'a':
                     HandleCode('\u0007');
                     break;
@@ -173,7 +173,7 @@
             var hasCode = false;
             char current;
 
-            if (Read() != '{') throw new InvalidOperationException("Invalid hex escape pattern.");
+            if (Read() != '{') throw CreateException(Errors.InvalidPattern());
 
             while ((current = Read()) != '}')
             {
@@ -204,7 +204,7 @@
                 }
                 else
                 {
-                    throw new InvalidOperationException("Invalid character code value.");
+                    throw CreateException(Errors.InvalidPattern());
                 }
             }
 
@@ -213,7 +213,7 @@
 
             void PutHexCode()
             {
-                if (!hasCode) throw new InvalidOperationException("Character code expected.");
+                if (!hasCode) CreateException(Errors.InvalidPattern());
 
                 HandleCode(hexCode);
                 hexCode = 0;
@@ -223,7 +223,7 @@
 
         private void ParseCategories()
         {
-            if (Read() != '{') throw new InvalidOperationException("Invalid unicode categories pattern.");
+            if (Read() != '{') CreateException(Errors.InvalidPattern());
 
             char current;
             var start = position;
@@ -237,7 +237,7 @@
                 }
                 else if (!Char.IsLetter(current))
                 {
-                    throw new InvalidOperationException($"Invalid unicode category name.");
+                    throw CreateException(Errors.InvalidPattern());
                 }
             }
 
@@ -246,11 +246,13 @@
             void PutCategory()
             {
                 var length = position - start - 1;
-                if (length == 0) throw new InvalidOperationException("Empty category name.");
+                if (length == 0) CreateException(Errors.InvalidPattern());
 
-                if (!UnicodeCategories.Mapping.TryGetValue(pattern.Substring(start, length), out var uc))
+                var catName = pattern.Substring(start, length);
+
+                if (!UnicodeCategories.Mapping.TryGetValue(catName, out var uc))
                 {
-                    throw new InvalidOperationException($"Invalid unicode category name.");
+                    CreateException(Errors.InvalidCategory(catName));
                 }
 
                 builder.Add(uc);
@@ -289,6 +291,13 @@
                     state = StateDefault;
                     break;
             }
+        }
+
+        private Exception CreateException(string message)
+        {
+            return new FormatException(message + Environment.NewLine
+                + $"Pattern: {pattern}" + Environment.NewLine
+                + $"Position: {position}");
         }
     }
 }

@@ -17,7 +17,7 @@
             : base(name, SymbolType.Terminal)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            if (expression.Nullable) throw new ArgumentException("Terminal requires non-nullable regular expression to initialize.", nameof(expression));
+            if (expression.Nullable) throw new ArgumentException(Errors.NullableExpression(), nameof(expression));
 
             this.Id = id;
             this.First = expression.Complete(id, lazy);

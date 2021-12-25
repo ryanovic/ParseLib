@@ -17,7 +17,7 @@
 
             if (cell.CellType != expectedType)
             {
-                throw new ArgumentException($"Cell of {expectedType} type is expected.", paramName);
+                throw new ArgumentException(Errors.TypeExpected(expectedType.Name), paramName);
             }
 
             return cell;

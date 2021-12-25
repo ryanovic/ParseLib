@@ -41,7 +41,7 @@
 
             if (ctor == null)
             {
-                throw new InvalidOperationException($"Type {typeof(T).Name} should have constructor accepting string argument defined.");
+                throw new InvalidOperationException(Errors.StringConstructorExpected(typeof(T).Name));
             }
 
             var facotry = new DynamicMethod("Factory", typeof(T), new[] { typeof(string) });
@@ -67,10 +67,10 @@
 
             if (ctor == null)
             {
-                throw new InvalidOperationException($"Type {typeof(T).Name} should have constructor accepting TextReader argument defined.");
+                throw new InvalidOperationException(Errors.TextReaderConstructorExpected(typeof(T).Name));
             }
 
-            var facotry = new DynamicMethod("Factory_222", typeof(T), new[] { typeof(TextReader) });
+            var facotry = new DynamicMethod("Factory", typeof(T), new[] { typeof(TextReader) });
             var il = facotry.GetILGenerator();
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Newobj, ctor);

@@ -40,7 +40,7 @@
             if (!IsValidRange(from)) throw new ArgumentOutOfRangeException(nameof(from));
             if (!IsValidRange(to)) throw new ArgumentOutOfRangeException(nameof(to));
 
-            if (from > to) throw new ArgumentException($"[{ToString(from)}-{ToString(to)}] range in reverse order.");
+            if (from > to) throw new ArgumentException(Errors.RangeReversed(ToString(from), ToString(to)));
 
             this.From = from;
             this.To = to;

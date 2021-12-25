@@ -19,13 +19,13 @@
                 return action;
             }
 
-            throw new GrammarException("Grammar contains unresolved shift-reduce conflict.", symbol, production);
+            throw new GrammarException(Errors.UnresolvedShift(), symbol, production);
         }
 
         /// <inheritdoc/>
         public virtual Production ResolveReduceConflict(Symbol symbol, Production first, Production second)
         {
-            throw new GrammarException("Grammar contains unresolved reduce-reduce conflict.", symbol, first, second);
+            throw new GrammarException(Errors.UnresolvedReduce(), symbol, first, second);
         }
 
         /// <inheritdoc/>

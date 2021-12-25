@@ -203,7 +203,7 @@
             LoadOffset();
             IL.Emit(OpCodes.Ldc_I4_0);
             IL.Emit(OpCodes.Bge, valid);
-            IL.ThrowArgumentOutOfRangeException("offset", "Offset cannot be less than zero.");
+            IL.ThrowArgumentOutOfRangeException("offset", Errors.OffsetOutOfRange());
         }
 
         private void ValidateLengthArgument(Label valid)
@@ -214,7 +214,7 @@
             LoadContent();
             IL.Emit(OpCodes.Callvirt, ReflectionInfo.String_Length_Get);
             IL.Emit(OpCodes.Ble, valid);
-            IL.ThrowArgumentOutOfRangeException("length", "Upper bound cannot be greater than string's length.");
+            IL.ThrowArgumentOutOfRangeException("length", Errors.LengthOutOfRange());
         }
     }
 }

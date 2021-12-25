@@ -13,7 +13,7 @@
         {
             if (tokenId < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(tokenId), "Token Id must be non-negative.");
+                throw new ArgumentOutOfRangeException(nameof(tokenId), Errors.NegativeTokenId());
             }
 
             this.TokenId = tokenId;
