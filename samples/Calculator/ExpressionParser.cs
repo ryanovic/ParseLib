@@ -52,5 +52,20 @@
 
         [Reduce("expr:unary")]
         protected void Neg() => il.Emit(OpCodes.Neg);
+
+        // When method with such signature is defined on the parser it would be executed for every token recognized.
+        protected void OnTokenCompleted(string name)
+        {
+            if (name != "ws")
+            {
+                Console.WriteLine($"token({name}): {GetLexeme()}");
+            }
+        }
+
+        // When method with such signature is defined on the parser it would be executed for every production reduced.
+        protected void OnProductionCompleted(string name)
+        {
+            Console.WriteLine($"production: {name}");
+        }
     }
 }

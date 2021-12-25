@@ -7,22 +7,25 @@
     {
         static void Main(string[] args)
         {
-            // Simple expression evaluator builder with basic math operation support.
+            // Simple expression evaluator with basic math operation support.
             // Generates (int a, int b) -> int delegated based on template provided as an input.
 
             var gramamr = CreateGrammar();
             var factory = gramamr.CreateStringParserFactory<ExpressionParser>("expr");
 
-            // Sample expression.
-            var parser = factory("-(2*a + b*2) / 2 + 2 * 2");
+            Console.WriteLine("\r\n **** Parser Output ****\r\n");
+
+            const string expression = "-(2*a + b*2) / 2 + 2 * 2";
+            var parser = factory(expression);
             parser.Parse();
             var eval = parser.CreateDelegate();
 
-            Console.WriteLine(eval(0, 0));    // Outputs: 4
-            Console.WriteLine(eval(0, 1));    // Outputs: 3
-            Console.WriteLine(eval(1, 0));    // Outputs: 3
-            Console.WriteLine(eval(1, 1));    // Outputs: 2
-            Console.WriteLine(eval(-1, -1));  // Outputs: 6
+            Console.WriteLine($"\r\n **** Evaluates: {expression}\r\n");
+
+            Console.WriteLine($"a = {0}, b = {0}, result: {eval(0, 0)}");        // Outputs: 4
+            Console.WriteLine($"a = {1}, b = {0}, result: {eval(1, 0)}");        // Outputs: 3
+            Console.WriteLine($"a = {1}, b = {1}, result: {eval(1, 1)}");        // Outputs: 2
+            Console.WriteLine($"a = {-1}, b = {-1}, result: {eval(-1, -1)}");    // Outputs: 6
         }
 
         static Grammar CreateGrammar()

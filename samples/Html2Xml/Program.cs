@@ -16,6 +16,8 @@
             var factory = grammar.CreateTextParserFactory<HtmlParser>("nodes");
             var parser = (HtmlParser)null;
 
+            Console.WriteLine("\r\n **** Parser Output ****\r\n");
+
             using (var reader = new StreamReader("input.htm"))
             {
                 // Creates new parser instance.
@@ -23,6 +25,7 @@
                 parser.Parse();
             }
 
+            Console.WriteLine("\r\n **** XML Document ****\r\n");
             var settings = new XmlWriterSettings { Indent = true };
 
             // Output resulting Xml Document.
@@ -111,7 +114,7 @@
             grammar.AddRule("node:tag-close", "</tag >");
 
             grammar.AddRule("nodes:init", "node");
-            grammar.AddRule("nodes:apend", "nodes node");
+            grammar.AddRule("nodes:append", "nodes node");
 
             return grammar;
         }
