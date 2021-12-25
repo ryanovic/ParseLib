@@ -78,7 +78,6 @@
             AppendElement(element);
         }
 
-
         [Reduce("node:script-single")]
         [Reduce("node:tag-single")]
         protected void AppendElement(XmlElement element)

@@ -68,7 +68,7 @@
             // ':' has special meaning in the terminal definition, and when it's used the following applies:
             // 1. terminal 'comment' ('text') is defined with regular expression specified.
             // 2. node -> comment (node -> text) production rule is added for 'node' non-terminal
-            // lazy parameter when set forces expression to be handled as soon as a final state is reached.
+            // Lazy parameter when set forces expression to be handled as soon as a final state is reached.
             grammar.CreateTerminal("node:comment", Rex.Text("<!--").Then(Rex.AnyText).Then("-->"), lazy: true);
             grammar.CreateTerminal("node:text", text_char.OneOrMore());
 
@@ -84,7 +84,7 @@
 
             // ':' is treated differently in the rule declaration, in the example below only the following rule is created:
             // 'attr' -> 'attr-name' 
-            // Meaning no 'single' extra no-terminal is created.
+            // Meaning no 'single' extra non-terminal is created.
             // Rule name('attr:single') will be used to reference this production later in the reducer.
             grammar.AddRule("attr:single", "attr-name");
             grammar.AddRule("attr:value-raw", "attr-name = attr-value-raw");
