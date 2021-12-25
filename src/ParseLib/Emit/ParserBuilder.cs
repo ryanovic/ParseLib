@@ -27,6 +27,9 @@
         private readonly MethodBuilder getNonTerminalNameMthd;
         private readonly MethodBuilder getParserStateMthd;
 
+        private readonly MethodInfo onTokenCompleted;
+        private readonly MethodInfo onProductionCompleted;
+
         public Grammar Grammar => metadata.Grammar;
         public ILexicalStates LexicalStates => metadata.LexicalStates;
         public Terminal[] Terminals => metadata.Terminals;
@@ -63,6 +66,11 @@
             this.getTerminalNameMthd = target.DefineMethod("GetTerminalName", MethodAttributes.Private, typeof(string), new[] { typeof(int) });
             this.getNonTerminalNameMthd = target.DefineMethod("GetNonTerminalName", MethodAttributes.Private, typeof(string), new[] { typeof(int) });
             this.getParserStateMthd = target.DefineMethod("GetParserState", MethodAttributes.Family | MethodAttributes.Virtual, typeof(string), Type.EmptyTypes);
+
+            this.onTokenCompleted = target.BaseType.GetMethod(
+                "OnTokenCompleted", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, null, new[] { typeof(string) }, null);
+            this.onProductionCompleted = target.BaseType.GetMethod(
+                "OnProductionCompleted", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, null, new[] { typeof(string) }, null);
 
             this.LexerState = target.CreateCell<int>("lexerState");
             this.StartPosition = target.CreateCell<int>("startPosition");
@@ -148,6 +156,28 @@
             dataStack.Initialize(il);
             stateStack.Push(il, () => il.Emit(OpCodes.Ldc_I4_0));
             LexerState.Update(il, States[0].LexicalState.Id);
+        }
+
+        protected virtual void OnTokenCompleted(ILGenerator il, Terminal terminal)
+        {
+            if (onTokenCompleted != null)
+            {
+                ExecuteMethod(il, onTokenCompleted, () =>
+                {
+                    il.Emit(OpCodes.Ldstr, terminal.Name);
+                });
+            }
+        }
+
+        protected virtual void OnProductionCompleted(ILGenerator il, Production production)
+        {
+            if (onProductionCompleted != null)
+            {
+                ExecuteMethod(il, onProductionCompleted, () =>
+                {
+                    il.Emit(OpCodes.Ldstr, production.Name);
+                });
+            }
         }
 
         protected virtual void ThrowParserException(ILGenerator il, string message)
@@ -242,7 +272,8 @@
 
         private void HandleLexeme(ILGenerator il, int tokenId)
         {
-            var method = Reducer.GetTokenReducer(Terminals[tokenId].Name);
+            var terminal = Terminals[tokenId];
+            var method = Reducer.GetTokenReducer(terminal.Name);
 
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldc_I4, tokenId);
@@ -251,6 +282,8 @@
             {
                 il.Emit(OpCodes.Ldnull);
             }
+
+            OnTokenCompleted(il, terminal);
 
             StartPosition.Update(il, () => CurrentPosition.Load(il));
             il.Emit(OpCodes.Call, handleTerminalMthd);
@@ -400,8 +433,9 @@
                 }
             }
 
-            stateStack.RemoveTop(il, production.Size);
+            OnProductionCompleted(il, production);
 
+            stateStack.RemoveTop(il, production.Size);
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldc_I4, ((NonTerminal)production.Head).Id);
             il.Emit(OpCodes.Call, handleNonTerminalMthd);
@@ -656,18 +690,14 @@
 
         private bool ExecuteMethod(ILGenerator il, MethodInfo method, ParameterInfo[] parameters)
         {
-            if (!method.IsStatic)
+            ExecuteMethod(il, method, () =>
             {
-                il.Emit(OpCodes.Ldarg_0);
-            }
-
-            for (int i = 1; i <= parameters.Length; i++)
-            {
-                dataStack.Peek(il, parameters.Length - i);
-                il.ConvertFromObject(parameters[i - 1].ParameterType);
-            }
-
-            il.Emit(method.IsStatic ? OpCodes.Call : OpCodes.Callvirt, method);
+                for (int i = 1; i <= parameters.Length; i++)
+                {
+                    dataStack.Peek(il, parameters.Length - i);
+                    il.ConvertFromObject(parameters[i - 1].ParameterType);
+                }
+            });
 
             if (method.ReturnType != typeof(void))
             {
@@ -676,6 +706,21 @@
             }
 
             return false;
+        }
+
+        private void ExecuteMethod(ILGenerator il, MethodInfo method, Action loadArgs)
+        {
+            if (method.IsStatic)
+            {
+                loadArgs();
+                il.Emit(OpCodes.Call, method);
+            }
+            else
+            {
+                il.Emit(OpCodes.Ldarg_0);
+                loadArgs();
+                il.Emit(OpCodes.Callvirt, method);
+            }
         }
     }
 }

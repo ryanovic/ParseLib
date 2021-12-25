@@ -47,6 +47,16 @@ namespace ParseLib.Runtime
 
             [Reduce("expr:unary")]
             public int Neg(int x) => -x;
+
+            protected void OnTokenCompleted(string token)
+            {
+                Assert.True(TestMathGrammar.Grammar.ContainsTerminal(token));
+            }
+
+            protected void OnProductionCompleted(string production)
+            {
+                Assert.True(TestMathGrammar.Grammar.ContainsRule(production));
+            }
         }
     }
 }
