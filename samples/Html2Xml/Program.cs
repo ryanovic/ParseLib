@@ -58,20 +58,17 @@
             // Any non-terminal should be defined before it's referenced.
             grammar.CreateNonTerminals("node", "nodes", "attr", "attrs");
 
-            // List of plain terminals (keywords, punctuators, etc..) can be defined in a single call.
-            // For each entry the following mapping will be generated:
-            // '=' -> Rex.Text("=")
-            // '/>' -> Rex.Text("/>")
-            // ...
+            // List of plain terminals (keywords, punctuators, etc..).
+            // Each item will serve as a name and an expression pattern simultaneously.
             grammar.CreateTerminals("=", "/>", ">", "<script", "</script");
 
-            // Defines whitespace terminal which could appear anywhere in a production.
+            // Terminals defined as whitespace could appear at any position within production.
             grammar.CreateWhitespace("ws", ws.OneOrMore());
 
-            // ':' has special meaning in the terminal definition, and when it's used the following applies:
-            // 1. terminal 'comment' ('text') is defined with regular expression specified.
-            // 2. node -> comment (node -> text) production rule is added for 'node' non-terminal
-            // Lazy parameter when set forces expression to be handled as soon as a final state is reached.
+            // ':' defines a complex name in 'owner:name' format. In the example below it leads to two different actions are performed:
+            // - First, terminal 'name' is created for provided regular expression.
+            // - Second - implicit production is defined to reduce newly created terminal to 'owner' (which should be a valid non-terminal symbol)
+            // Lazy parameter when set forces expression to be completed as soon as a final state is reached.
             grammar.CreateTerminal("node:comment", Rex.Text("<!--").Then(Rex.AnyText).Then("-->"), lazy: true);
             grammar.CreateTerminal("node:text", text_char.OneOrMore());
 
@@ -85,10 +82,9 @@
             grammar.CreateTerminal("attr-value-raw", name_char.OneOrMore());
             grammar.CreateTerminal("attr-value-str", Rex.Char('"').Then(Rex.AnyText).Then('"'), lazy: true);
 
-            // ':' is treated differently in the rule declaration, in the example below only the following rule is created:
-            // 'attr' -> 'attr-name' 
-            // Meaning no 'single' extra non-terminal is created.
-            // Rule name('attr:single') will be used to reference this production later in the reducer.
+            // Complex name (owner:name) is treated differently in a production rule definition -
+            // 'owner' always defines a non-terminal symbol the rule is defined for and 'owner:name' will form a key, newly created production can be referenced by.
+            // Meanwhile NO extra 'name' symbol is defined.
             grammar.AddRule("attr:single", "attr-name");
             grammar.AddRule("attr:value-raw", "attr-name = attr-value-raw");
             grammar.AddRule("attr:value-str", "attr-name = attr-value-str");
@@ -98,7 +94,7 @@
             // 'attrs' -> . attr
             // 'attr'  -> . attr-name
             // ...
-            // the shift action will be forced when 'attr-name' token encountered.
+            // The shift action will be forced when 'attr-name' token encountered.
             grammar.AddRule("attrs:empty", "").ShiftOn("attr-name");
             grammar.AddRule("attrs:init", "attr");
             grammar.AddRule("attrs:append", "attrs attr");

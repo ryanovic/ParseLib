@@ -34,13 +34,13 @@
             // keeping grammar definition compact and nice.
             var grammar = new Grammar(new CustomConflictResolver());
 
-            // Basic terminals expression 'plain' terminals.
+            // Group definition for 'plain' terminals ("name" -> Rex.Text("name")).
             grammar.CreateTerminals("+", "-", "/", "*", "(", ")");
 
             // Root non-terminal.
             grammar.CreateNonTerminals("expr");
 
-            // Define whitespace so digits and operators could be separated by spaces in the source. 
+            // Define whitespace so digits and operators could be separated in the source. 
             grammar.CreateWhitespace("ws", Rex.Char(' ').OneOrMore());
 
             // Equals to:            

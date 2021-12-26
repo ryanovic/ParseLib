@@ -66,7 +66,7 @@
         [Reduce("attr:single")]
         protected void AppendAttribute(string name) => current.SetAttribute(name, name);
 
-        // Reads both name and value from stack.        
+        // Reads both name and value from the stack.        
         [Reduce("attr:value-raw")]
         [Reduce("attr:value-str")]
         protected void AppendAttribute(string name, string value) => current.SetAttribute(name, value);

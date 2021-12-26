@@ -5,10 +5,10 @@
 
     public class CustomConflictResolver : ConflictResolver
     {
-        // Mutual operators priorities can be defined as a shift-reduce conflict:
+        // Operator's mutual priority can be defined as a shift-reduce grammar conflict, like:
         // expr -> expr  + expr . (reduce on '*')
-        // expr -> expr .* expr
-        // Same for operator associativity we have some state with:
+        // expr -> expr .* expr 
+        // Similar for operator associativity we would have state like:
         // expr -> expr  + expr . (reduce on '+')
         // expr -> expr .+ expr
         // Hence, by specifying a correct action for every (production, symbol) pair we can configure both. 
