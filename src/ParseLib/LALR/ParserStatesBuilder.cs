@@ -4,9 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    /// <summary>
-    /// Creates LALR set of parser states for the grammar.
-    /// </summary>
     public class ParserStatesBuilder
     {
         private readonly IConflictResolver conflictResolver;

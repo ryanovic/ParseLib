@@ -5,9 +5,6 @@
     using System.Reflection;
     using ParseLib.Runtime;
 
-    /// <summary>
-    /// Defines default parser reducer constructed based on the taget's base type metadata.
-    /// </summary>
     public class ParserReducer : IParserReducer
     {
         public static ParserReducer CreateReducer(Type target, Grammar grammar, bool skipValidation = false)

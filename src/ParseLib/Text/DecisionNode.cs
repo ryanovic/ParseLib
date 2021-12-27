@@ -4,9 +4,6 @@
     using System.Collections.Generic;
     using System.Text;
 
-    /// <summary>
-    /// Helper to build decision tree to handle lookahead expressions.
-    /// </summary>
     internal sealed class DecisionNode
     {
         public bool IsLeaf => Left == null && Right == null;

@@ -5,9 +5,6 @@
 
     public static class ILGeneratorExtensions
     {
-        /// <summary>
-        /// Creates a local variable cell of the specified type.
-        /// </summary>
         public static ICell CreateCell(this ILGenerator il, Type type)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -16,9 +13,6 @@
             return new LocalCell(il.DeclareLocal(type));
         }
 
-        /// <summary>
-        /// Creates a strong typed local variable cell.
-        /// </summary>
         public static Cell<T> CreateCell<T>(this ILGenerator il)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -26,9 +20,6 @@
             return new Cell<T>(il.CreateCell(typeof(T)));
         }
 
-        /// <summary>
-        /// Creates a local variable cell to store a Lookahead stack instance.
-        /// </summary>
         public static LookaheadStack CreateLookaheadStack(this ILGenerator il)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -36,18 +27,12 @@
             return new LookaheadStack(il.CreateCell(ReflectionInfo.LookaheadStack));
         }
 
-        /// <summary>
-        /// Creates a local variable cell to store a Lookahead item instance.
-        /// </summary>
         public static LookaheadItem CreateLookaheadItem(this ILGenerator il)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
 
             return new LookaheadItem(il.CreateCell(ReflectionInfo.LookaheadTuple));
         }
-
-
-        // Internal helpers below are used across the lib - not yet well organized to be exposed as a public interface though.
 
         internal static void ThrowInvalidOperationException(this ILGenerator il, string message)
         {

@@ -4,7 +4,6 @@
     using System.Collections;
     using System.Collections.Generic;
 
-    /// <inheritdoc/>
     internal class ParserStates : IParserStates
     {
         private readonly List<ParserState> states;

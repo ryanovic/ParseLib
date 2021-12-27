@@ -4,9 +4,6 @@
     using System.Reflection.Emit;
     using System.Collections.Generic;
 
-    /// <summary>
-    /// Generates ranges for binary search.
-    /// </summary>
     internal sealed class SearchInterval
     {
         public int Low { get; }

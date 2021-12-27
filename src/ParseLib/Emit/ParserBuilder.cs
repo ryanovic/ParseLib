@@ -9,9 +9,6 @@
     using ParseLib.Runtime;
     using ParseLib.Text;
 
-    /// <summary>
-    /// Defines the base for parser builder.
-    /// </summary>
     public abstract class ParserBuilder : ILexerTarget
     {
         private readonly Cell<bool> isLineBreak;
@@ -107,13 +104,11 @@
             return Target.CreateTypeInfo();
         }
 
-        /// <inheritdoc/>
         public virtual void CompleteToken(ILGenerator il, int tokenId)
         {
             HandleLexeme(il, tokenId);
         }
 
-        /// <inheritdoc/>
         public virtual void CompleteToken(ILGenerator il, Cell<int> tokenId)
         {
             il.Emit(OpCodes.Ldarg_0);
@@ -121,7 +116,6 @@
             il.Emit(OpCodes.Call, handleLexemeMthd);
         }
 
-        /// <inheritdoc/>
         public virtual void CompleteSource(ILGenerator il, ILexerSource source)
         {
             var handleEos = il.DefineLabel();
@@ -142,14 +136,8 @@
             il.Emit(OpCodes.Call, handleEosMthd);
         }
 
-        /// <summary>
-        /// Creates lexical analyzer.
-        /// </summary>
         protected abstract void BuildLexer();
 
-        /// <summary>
-        /// Initialize initial parser state.
-        /// </summary>
         protected virtual void InitializeParser(ILGenerator il)
         {
             stateStack.Initialize(il);

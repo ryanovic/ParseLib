@@ -4,9 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    /// <summary>
-    /// Represents parser's state corresponded to a specific position in production.
-    /// </summary>
     public sealed class ParserItem : IEquatable<ParserItem>
     {
         internal static int CompareBySymbol(ParserItem x, ParserItem y) => x.Symbol.Name.CompareTo(y.Symbol.Name);
@@ -47,19 +44,10 @@
             return symbols;
         }
 
-        /// <summary>
-        /// Verifies if the current item is allowed due to its LineBreak modificator.
-        /// </summary>
         public bool IsAllowed(ParserState state) => IsAllowed(state.LineBreak);
 
-        /// <summary>
-        /// Verifies if the current item is allowed due to its LineBreak modificator.
-        /// </summary>
         public bool IsAllowed(LineBreakModifier lineBreak) => (LineBreak | lineBreak) != LineBreakModifier.Forbidden;
 
-        /// <summary>
-        /// Returns item for the next position.
-        /// </summary>
         public ParserItem CreateNextItem()
         {
             return new ParserItem(Production, Index + 1);

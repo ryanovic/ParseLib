@@ -4,12 +4,8 @@
     using System.Collections.Generic;
     using System.Reflection.Emit;
 
-    /// <summary>
-    /// Defines the source for <c>bool Read(int bufferPosition, char[] buffer, int offset, int length, bool endOfSource)</c> method.
-    /// </summary>
     public sealed class SequentialParserSource : ILexerSource
     {
-        /// <inheritdoc/>
         public bool IsSequental => true;
 
         public void CheckLowerBound(ILGenerator il, Cell<int> position, Label isValid)
@@ -19,7 +15,6 @@
             il.Emit(OpCodes.Bge, isValid);
         }
 
-        /// <inheritdoc/>
         public void CheckUpperBound(ILGenerator il, Cell<int> position, Label isValid)
         {
             position.Load(il);
@@ -29,14 +24,12 @@
             il.Emit(OpCodes.Blt, isValid);
         }
 
-        /// <inheritdoc/>
         public void CheckIsLastChunk(ILGenerator il, Label isLast)
         {
             LoadIsEndOfSource(il);
             il.Emit(OpCodes.Brtrue, isLast);
         }
 
-        /// <inheritdoc/>
         public void LoadCharCode(ILGenerator il, Cell<int> position)
         {
             LoadBuffer(il);
@@ -48,7 +41,6 @@
             il.Emit(OpCodes.Ldelem_U2);
         }
 
-        /// <inheritdoc/>
         public void LoadCharCode(ILGenerator il, Cell<int> position, Cell<int> highSurrogate)
         {
             highSurrogate.Load(il);

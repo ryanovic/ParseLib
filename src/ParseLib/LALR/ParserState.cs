@@ -3,9 +3,6 @@
     using System;
     using System.Collections.Generic;
 
-    /// <summary>
-    /// Represents parser's state.
-    /// </summary>
     public class ParserState
     {
         public int Id { get; }
@@ -40,9 +37,6 @@
             this.Actions = new Dictionary<Symbol, ParserAction>(original.Actions);
         }
 
-        /// <summary>
-        /// Gets the state following accroding to the path specified.
-        /// </summary>
         public ParserState GetState(params Symbol[] path)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));

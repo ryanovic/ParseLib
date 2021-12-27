@@ -4,9 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    /// <summary>
-    /// Helper to generate lookaheads for parser reduce actions.
-    /// </summary>
     internal class LookaheadsGenerator
     {
         private readonly List<ParserState> states;

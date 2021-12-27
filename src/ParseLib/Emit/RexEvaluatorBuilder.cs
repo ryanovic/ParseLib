@@ -5,9 +5,6 @@
     using System.Reflection.Emit;
     using ParseLib.Text;
 
-    /// <summary>
-    /// Creates a parser method which's based on regular expression specified.
-    /// </summary>
     internal sealed class RexEvaluatorBuilder : LexerBuilderBase
     {
         private readonly LookaheadStack lhStack;

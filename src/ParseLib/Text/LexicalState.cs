@@ -16,14 +16,7 @@
         public bool IsLookaheadFinal => position != null && position.IsLookahead;
         public bool IsLowSurrogate { get; }
 
-        /// <summary>
-        /// In the case of Lookahead state determines the next state to go when node match has failed.
-        /// </summary>
         public LexicalState OnFalse { get; }
-
-        /// <summary>
-        /// In the case of Lookahead state determines the next state to go when node has matched.
-        /// </summary>
         public LexicalState OnTrue { get; }
 
         public RangeTransition[] Ranges { get; internal set; }

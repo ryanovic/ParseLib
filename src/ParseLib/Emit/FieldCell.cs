@@ -3,9 +3,6 @@
     using System;
     using System.Reflection.Emit;
 
-    /// <summary>
-    /// Defines the cell based on the type's field.
-    /// </summary>
     internal sealed class FieldCell : ICell
     {
         private readonly FieldBuilder field;

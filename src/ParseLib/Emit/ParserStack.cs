@@ -4,9 +4,6 @@
     using System.Collections.Generic;
     using System.Reflection.Emit;
 
-    /// <summary>
-    /// Defines internal helper to work with parser's stack.
-    /// </summary>
     internal sealed class ParserStack
     {
         private readonly ICell list;

@@ -7,9 +7,6 @@
     using ParseLib.LALR;
     using ParseLib.Text;
 
-    /// <summary>
-    /// Represents computed parser's states and metadata. 
-    /// </summary>
     public sealed class ParserMetadata
     {
         public static ParserMetadata Create(Grammar grammar, ILexicalStates lexicalStates, IParserStates parserStates)

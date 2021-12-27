@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection.Emit;
-using System.Text;
-
-namespace ParseLib.Emit
+﻿namespace ParseLib.Emit
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection.Emit;
+
     public static class CellExtensions
     {
-        /// <summary>
-        /// Updates the cell with the value from another one of the same type.
-        /// </summary>
         public static void Update<T>(this Cell<T> cell, ILGenerator il, Cell<T> other)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -20,9 +16,6 @@ namespace ParseLib.Emit
             }
         }
 
-        /// <summary>
-        /// Updates the cell's value.
-        /// </summary>
         public static void Update(this Cell<int> cell, ILGenerator il, int value)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -44,9 +37,6 @@ namespace ParseLib.Emit
             });
         }
 
-        /// <summary>
-        /// Updates the cell's value.
-        /// </summary>
         public static void Update(this Cell<bool> cell, ILGenerator il, bool value)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -54,9 +44,6 @@ namespace ParseLib.Emit
             cell.Update(il, () => il.Emit(value ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
         }
 
-        /// <summary>
-        /// Increments the cell's value.
-        /// </summary>
         public static void Increment(this Cell<int> cell, ILGenerator il)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -69,9 +56,6 @@ namespace ParseLib.Emit
             });
         }
 
-        /// <summary>
-        /// Decrements the cell's value.
-        /// </summary>
         public static void Decrement(this Cell<int> cell, ILGenerator il)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));

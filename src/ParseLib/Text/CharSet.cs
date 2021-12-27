@@ -6,9 +6,6 @@
     using System.Collections.Generic;
     using System.Text;
 
-    /// <summary>
-    /// Disjoint ordered set of unicode ranges united with unicode categories.
-    /// </summary>
     public sealed class CharSet
     {
         public static CharSet Any { get; } = new CharSet(UnicodeRanges.All);

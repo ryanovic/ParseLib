@@ -3,9 +3,6 @@
     using System;
     using System.Reflection.Emit;
 
-    /// <summary>
-    /// Defines the cell based on the local variable.
-    /// </summary>
     internal sealed class LocalCell : ICell
     {
         private readonly LocalBuilder local;

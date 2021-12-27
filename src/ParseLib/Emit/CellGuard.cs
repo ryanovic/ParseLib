@@ -5,9 +5,6 @@
 
     internal static class CellGuard
     {
-        /// <summary>
-        /// Verifies the cell to be initialized with a type specified.
-        /// </summary>
         public static ICell Check(string paramName, ICell cell, Type expectedType)
         {
             if (cell == null)

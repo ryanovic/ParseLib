@@ -5,9 +5,6 @@
     using System.Reflection.Emit;
     using ParseLib.Text;
 
-    /// <summary>
-    /// Defines operations to work with lookahed stack.
-    /// </summary>
     public sealed class LookaheadStack
     {
         public ICell Stack { get; }

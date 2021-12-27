@@ -5,9 +5,6 @@
     using System.Reflection;
     using System.Reflection.Emit;
 
-    /// <summary>
-    /// Creates parser which's based on <see cref="StringParserSource"/>.
-    /// </summary>
     public sealed class StringParserBuilder : ParserBuilder
     {
         public StringParserBuilder(TypeBuilder target, IParserReducer reducer, Grammar grammar, string goal)
@@ -19,8 +16,7 @@
             : base(target, reducer, metadata)
         {
         }
-
-        /// <inheritdoc/>
+                
         protected override void BuildLexer()
         {
             var method = Target.DefineMethod("Read",

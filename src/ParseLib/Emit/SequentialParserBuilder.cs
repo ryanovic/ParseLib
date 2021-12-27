@@ -5,9 +5,6 @@
     using System.Reflection;
     using System.Reflection.Emit;
 
-    /// <summary>
-    /// Creates parser which's based on <see cref="SequentialParserSource"/>.
-    /// </summary>
     public sealed class SequentialParserBuilder : ParserBuilder
     {
         private readonly Cell<int> acceptedPosition;
@@ -32,7 +29,6 @@
                 : null;
         }
 
-        /// <inheritdoc/>
         protected override void InitializeParser(ILGenerator il)
         {
             base.InitializeParser(il);
@@ -40,7 +36,6 @@
             lhStack?.Initialize(il);
         }
 
-        /// <inheritdoc/>
         protected override void BuildLexer()
         {
             var method = Target.DefineMethod("Read",

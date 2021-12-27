@@ -5,9 +5,6 @@
     using System.Collections.Generic;
     using ParseLib.Text;
 
-    /// <summary>
-    /// Creates the lexical analyzer for the source and target specified.
-    /// </summary>
     public sealed class LexerBuilder : LexerBuilderBase
     {
         public ILexerSource Source { get; }
@@ -21,10 +18,7 @@
 
         private readonly LookaheadStack lookaheadStack;
         private readonly LookaheadItem lookaheadItem;
-
-        /// <remarks>
-        /// When <paramref name="highSurrogate"/> is NULL charCode cell will be used instead(applies when a whole source is read in a single chunk).
-        /// </remarks>
+                
         public LexerBuilder(
             ILGenerator il,
             ILexicalStates states,

@@ -5,9 +5,6 @@
     using System.Reflection.Emit;
     using ParseLib.Text;
 
-    /// <summary>
-    /// Defines the base lexical analyzer builder.
-    /// </summary>
     public abstract class LexerBuilderBase
     {
         private readonly Label selectStateLabel_CheckLowerBound;
@@ -225,25 +222,10 @@
             IL.GoTo(deadStateLabel);
         }
 
-        /// <summary>
-        /// Loads current state and puts it on the stack.
-        /// </summary>
         protected abstract void LoadState();
-
-        /// <summary>
-        /// Performs transistion to the next state.
-        /// </summary>
-        /// <param name="next"></param>
         protected abstract void MoveNext(LexicalState next);
-
-        /// <summary>
-        /// Loads current character code and puts it on the stack.
-        /// </summary>
         protected abstract void LoadCharCode(LexicalState current);
 
-        /// <summary>
-        /// Loads an uncicode category corresponded to the current char and puts it on the stack.
-        /// </summary>
         protected virtual void LoadUnicodeCategory(LexicalState current)
         {
             if (ReflectionInfo.Char_GetCategoryByInt32 != null)
@@ -265,60 +247,19 @@
             }
         }
 
-        /// <summary>
-        /// Verifies lower bound of the current buffer.
-        /// </summary>
         protected abstract void CheckLoweBound();
-
-        /// <summary>
-        /// Verifies upper bound of the current buffer.
-        /// </summary>
         protected abstract void CheckUpperBound(Label isValid);
-
-        /// <summary>
-        /// Verifies current chunk is completed.
-        /// </summary>
         protected abstract void CheckEndOfBuffer();
 
-        /// <summary>
-        /// Checks if lookahead sub-expression is currently processed.
-        /// </summary>
         protected abstract void CheckIsLookahead(Label onFalse);
-
-        /// <summary>
-        /// Restores state and position are corresponded to a lookahead sub-expression outcome.
-        /// </summary>
         protected abstract void PopLookaheadState(bool success);
-
-        /// <summary>
-        /// Saves lookahead sub-expession return info when processing is started. 
-        /// </summary>
         protected abstract void PushLookaheadState(LexicalState current);
 
-        /// <summary>
-        /// Checks if any token has been accepted.  
-        /// </summary>
-        /// <param name="onFalse"></param>
         protected abstract void CheckHasAcceptedToken(Label onFalse);
-
-        /// <summary>
-        /// Saves specified token as accepted.
-        /// </summary>
         protected abstract void SaveAcceptedToken(int tokenId);
 
-        /// <summary>
-        /// Completes token was accepted.
-        /// </summary>
         protected abstract void CompleteLastAcceptedToken();
-
-        /// <summary>
-        /// Completes token specified.
-        /// </summary>
         protected abstract void CompleteToken(int tokenId);
-
-        /// <summary>
-        /// Completes source processing.
-        /// </summary>
         protected abstract void CompleteSource();
 
         private void UpdateCharCode(LexicalState current)
