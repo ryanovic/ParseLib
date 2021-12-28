@@ -97,6 +97,9 @@
 
         public Terminal CreateWhitespace(string name, RexNode expression, bool isLineBreak = false, bool lazy = false)
         {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
             var ws = CreateTerminal(name, expression, lazy);
             Whitespaces.Add(ws, isLineBreak);
             return ws;
@@ -132,6 +135,16 @@
             {
                 AddSymbol(new Terminal(lexeme, terminalId++));
             }
+        }
+
+        public Terminal CreateTerminal(string lexeme)
+        {
+            if (lexeme == null) throw new ArgumentNullException(nameof(lexeme));
+
+            var terminal = new Terminal(lexeme, terminalId++);
+            AddSymbol(terminal);
+
+            return terminal;
         }
 
         public NonTerminal CreateNonTerminal(string name)
@@ -185,14 +198,14 @@
 
             for (int i = 0, start = 0; i < body.Length; i++)
             {
-                if (body[i] != ' ')
+                if (!Char.IsWhiteSpace(body[i]))
                 {
-                    if (i == 0 || body[i - 1] == ' ')
+                    if (i == 0 || Char.IsWhiteSpace(body[i - 1]))
                     {
                         start = i;
                     }
 
-                    if (i == body.Length - 1 || body[i + 1] == ' ')
+                    if (i == body.Length - 1 || Char.IsWhiteSpace(body[i + 1]))
                     {
                         symbols.Add(Symbols[body.Substring(start, i - start + 1)]);
                     }
@@ -234,6 +247,11 @@
 
         private Symbol AddSymbol(Symbol symbol)
         {
+            if (symbol.Name.Any(x => Char.IsWhiteSpace(x)))
+            {
+                throw new ArgumentException(Errors.SymbolNameWhitespace(), nameof(symbol));
+            }
+
             Symbols.Add(symbol.Name, symbol);
             return symbol;
         }

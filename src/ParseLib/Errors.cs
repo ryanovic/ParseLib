@@ -65,5 +65,7 @@
         public static string InvalidPattern() => "Invalid char-set expression.";
 
         public static string InvalidCategory(string name) => $"Can't find '{name}' unicode category.";
+
+        public static string SymbolNameWhitespace() => "Whitespace characters are not allowed in a symbol name.";
     }
 }
