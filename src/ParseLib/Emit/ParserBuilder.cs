@@ -421,9 +421,9 @@
                 }
             }
 
+            stateStack.RemoveTop(il, production.Size);
             OnProductionCompleted(il, production);
 
-            stateStack.RemoveTop(il, production.Size);
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldc_I4, ((NonTerminal)production.Head).Id);
             il.Emit(OpCodes.Call, handleNonTerminalMthd);
