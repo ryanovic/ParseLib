@@ -55,7 +55,7 @@
             grammar.CreateTerminal("expr:a", Rex.Char('a'));
             grammar.CreateTerminal("expr:b", Rex.Char('b'));
 
-            // Defines the production for each operation.
+            // Define production for each operation.
             grammar.AddRule("expr:unary", "- expr");
             grammar.AddRule("expr:add", "expr + expr");
             grammar.AddRule("expr:sub", "expr - expr");
