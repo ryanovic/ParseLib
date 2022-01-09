@@ -43,9 +43,13 @@
                 typeof(bool),
                 new[] { typeof(int), typeof(char[]), typeof(int), typeof(int), typeof(bool) });
 
+            var il = method.GetILGenerator();
+            var charCode = il.CreateCell<int>();
+            var categories = il.CreateCell<int>();
+
             var source = CreateSource();
             var lexer = new LexerBuilder(
-                method.GetILGenerator(), LexicalStates, source, this, lhStack, LexerState, CurrentPosition, acceptedPosition, acceptedTokenId, highSurrogate);
+                il, LexicalStates, source, this, lhStack, charCode, categories, LexerState, CurrentPosition, acceptedPosition, acceptedTokenId, highSurrogate);
 
             lexer.Build();
         }

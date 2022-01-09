@@ -20,12 +20,12 @@
             var il = method.GetILGenerator();
             var stateBuilder = new LexicalStatesBuilder(ignoreCase);
             var root = stateBuilder.CreateStates(0, expr, lazy);
-            var builder = new RexEvaluatorBuilder(il, stateBuilder);
+            var builder = new RexEvaluatorBuilder(il, stateBuilder, il.CreateCell<int>(), il.CreateCell<int>());
             builder.Build(root);
             return (RexEvaluator)method.CreateDelegate(typeof(RexEvaluator));
         }
 
-        public RexEvaluatorBuilder(ILGenerator il, LexicalStatesBuilder stateBuilder) : base(il, stateBuilder)
+        public RexEvaluatorBuilder(ILGenerator il, LexicalStatesBuilder stateBuilder, Cell<int> charCode, Cell<int> categories) : base(il, stateBuilder, charCode, categories)
         {
             this.position = il.CreateCell<int>();
             this.state = il.CreateCell<int>();

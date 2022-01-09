@@ -223,6 +223,8 @@
                     new[] { typeof(string), typeof(int), typeof(int) });
 
                 var il = method.GetILGenerator();
+                var charCode = il.CreateCell<int>();
+                var categories = il.CreateCell<int>();
 
                 var lhStack = lexStateBuilder.HasLookaheads
                     ? il.CreateLookaheadStack()
@@ -235,7 +237,7 @@
                 lhStack?.Initialize(il);
 
                 var lexer = new LexerBuilder(
-                    il, lexStateBuilder, new StringParserSource(), builder, lhStack, state, position, acceptedPosition, acceptedId, null);
+                    il, lexStateBuilder, new StringParserSource(), builder, lhStack, charCode, categories, state, position, acceptedPosition, acceptedId, charCode);
                 lexer.Build();
 
                 return target.CreateType();
@@ -273,8 +275,12 @@
                     typeof(bool),
                     new[] { typeof(int), typeof(char[]), typeof(int), typeof(int), typeof(bool) });
 
+                var mthd_il = method.GetILGenerator();
+                var charCode = mthd_il.CreateCell<int>();
+                var categories = mthd_il.CreateCell<int>();
+
                 var lexer = new LexerBuilder(
-                    method.GetILGenerator(), lexStateBuilder, source, builder, lhStack, state, position, acceptedPosition, acceptedId, highSurrogate);
+                    mthd_il, lexStateBuilder, source, builder, lhStack, charCode, categories, state, position, acceptedPosition, acceptedId, highSurrogate);
                 lexer.Build();
 
                 return target.CreateType();

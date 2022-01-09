@@ -18,19 +18,21 @@
 
         private readonly LookaheadStack lookaheadStack;
         private readonly LookaheadItem lookaheadItem;
-                
+
         public LexerBuilder(
             ILGenerator il,
             ILexicalStates states,
             ILexerSource source,
             ILexerTarget target,
             LookaheadStack lhStack,
+            Cell<int> charCode,
+            Cell<int> categories,
             Cell<int> state,
             Cell<int> position,
             Cell<int> acceptedPosition,
             Cell<int> acceptedTokenId,
-            Cell<int>? highSurrogate)
-            : base(il, states)
+            Cell<int> highSurrogate)
+            : base(il, states, charCode, categories)
         {
             this.Source = source ?? throw new ArgumentNullException(nameof(source));
             this.Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -39,7 +41,7 @@
             this.position = position;
             this.acceptedPosition = acceptedPosition;
             this.acceptedTokenId = acceptedTokenId;
-            this.highSurrogate = highSurrogate ?? CharCode;
+            this.highSurrogate = highSurrogate;
 
             if (HasLookaheads)
             {

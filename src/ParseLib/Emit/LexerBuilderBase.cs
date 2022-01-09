@@ -19,7 +19,7 @@
         protected Cell<int> CharCode { get; }
         protected Cell<int> UnicodeCategories { get; }
 
-        public LexerBuilderBase(ILGenerator il, ILexicalStates states)
+        public LexerBuilderBase(ILGenerator il, ILexicalStates states, Cell<int> charCode, Cell<int> categories)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
             if (states == null) throw new ArgumentNullException(nameof(states));
@@ -32,8 +32,8 @@
             this.deadStateLabel = il.DefineLabel();
             this.stateLabels = il.DefineLabels(states.Count);
 
-            this.CharCode = il.CreateCell<int>();
-            this.UnicodeCategories = il.CreateCell<int>();
+            this.CharCode = charCode;
+            this.UnicodeCategories = categories;
         }
 
         public virtual void Build()
