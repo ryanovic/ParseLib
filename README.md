@@ -7,7 +7,8 @@
 - End-to-end solution with a built-in lexical analyzer.
 - LALR grammars support.
 - Embedded Unicode surrogates handling.
-- In-memory dynamic parser generation.
+- In-memory dynamic type generation.
+- Async TextReader based parser out-of-the-box.
 
 For more information check the project's [wiki](https://github.com/ryanovic/ParseLib/wiki) page or examine the _samples_ folder.
 
