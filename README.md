@@ -73,7 +73,7 @@ public abstract class ExpressionParser : StringParser
 
 Finally, based on the grammar and the parser we can build a parser factory. The factory is just a wrapper for an appropriate constructor defined by a type of the parser was generated: 
 
-```
+``` C#
 var factory = grammar.CreateStringParserFactory<ExpressionParser>("expr");
 var parser = factory("-2 + -(2 * 2)");
 
