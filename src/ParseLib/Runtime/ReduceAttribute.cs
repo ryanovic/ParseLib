@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ParseLib.Runtime
+﻿namespace ParseLib.Runtime
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+
+    /// <summary>
+    /// Defiens a target handler for a specified production.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class ReduceAttribute : Attribute
     {

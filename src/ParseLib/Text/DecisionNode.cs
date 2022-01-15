@@ -4,6 +4,9 @@
     using System.Collections.Generic;
     using System.Text;
 
+    /// <summary>
+    /// Generates nodes representing a lookeahead decision tree.
+    /// </summary>
     internal sealed class DecisionNode
     {
         public bool IsLeaf => Left == null && Right == null;
@@ -26,19 +29,25 @@
 
         public static DecisionNode Create(Position[] positions)
         {
+            // A root node.
             DecisionNode node = null;
             var items = new List<Position>();
 
             for (int i = 0; i < positions.Length; i++)
             {
+                // Distinguish lookahead positions from text.
                 if (positions[i] is SentinelPosition sentinel)
                 {
+                    // A conditional node.
                     var condition = Create(sentinel.Lookahead);
-                    var target = Create(sentinel.Next);
 
+                    // A node which is followed on success.
+                    var next = Create(sentinel.Next);
+
+                    // Generates a new node for the sentinel and merge it with the root.
                     node = sentinel.Positive
-                        ? Merge(node, OnTrue(condition, target))
-                        : Merge(node, OnFalse(condition, target));
+                        ? Merge(node, OnTrue(condition, next))
+                        : Merge(node, OnFalse(condition, next));
                 }
                 else
                 {
@@ -46,6 +55,7 @@
                 }
             }
 
+            // Merge the root with text positions.
             return Merge(node, items.ToArray());
         }
 
@@ -98,14 +108,17 @@
         {
             if (node == null)
             {
+                // null, positions -> node(positions, null, null) 
                 return new DecisionNode(positions);
             }
 
             if (node.IsLeaf)
             {
+                // node(positions, null, null), positions -> node(node.Positions + positions, null, null) 
                 return new DecisionNode(Utils.Concate(node.Positions, positions));
             }
 
+            // node(positions, left, right), positions -> node(node.Positions, merge(node.left, positions), merge(node.right, positions)) 
             return new DecisionNode(node.Positions, Merge(node.Left, positions), Merge(node.Right, positions));
         }
     }

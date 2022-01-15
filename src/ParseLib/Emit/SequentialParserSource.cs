@@ -3,7 +3,18 @@
     using System;
     using System.Collections.Generic;
     using System.Reflection.Emit;
+    using ParseLib.Runtime;
 
+    /// <summary>
+    /// Implements <see cref="ILexerSource"/> interface for a sequential parser.
+    /// </summary>
+    /// <remarks>
+    /// Corresponds to a lexer method with the following  signature:
+    /// <code>
+    /// bool Read(int bufferPosition, char[] buffer, int offset, int length, bool endOfSource);
+    /// </code>
+    /// See <see cref="TextParser"/> for an example.
+    /// </remarks>
     public sealed class SequentialParserSource : ILexerSource
     {
         public bool IsSequental => true;

@@ -1,5 +1,8 @@
 ﻿namespace ParseLib.Text
 {
+    /// <summary>
+    /// Represents a lexical state awaiting initialization.
+    /// </summary>
     internal readonly struct LexicalStateQueueItem
     {
         public LexicalState State { get; }

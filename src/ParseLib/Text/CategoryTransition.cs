@@ -3,6 +3,9 @@
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Represents a transition to a state defined by a set of Unicode categories.
+    /// </summary>
     public sealed class CategoryTransition
     {
         public UnicodeCategories Category { get; }

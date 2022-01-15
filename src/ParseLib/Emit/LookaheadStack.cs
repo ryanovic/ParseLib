@@ -5,6 +5,9 @@
     using System.Reflection.Emit;
     using ParseLib.Text;
 
+    /// <summary>
+    /// Represents storage for a lookahead stack with associated operations.
+    /// </summary>
     public sealed class LookaheadStack
     {
         public ICell Stack { get; }

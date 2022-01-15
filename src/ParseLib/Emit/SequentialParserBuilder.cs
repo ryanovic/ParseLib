@@ -5,6 +5,9 @@
     using System.Reflection;
     using System.Reflection.Emit;
 
+    /// <summary>
+    /// Implements <see cref="ParserBuilder"/> class for a <see cref="SequentialParserSource">sequential</see> input source.
+    /// </summary>
     public sealed class SequentialParserBuilder : ParserBuilder
     {
         private readonly Cell<int> acceptedPosition;
@@ -20,6 +23,7 @@
         public SequentialParserBuilder(TypeBuilder target, IParserReducer reducer, ParserMetadata metadata)
             : base(target, reducer, metadata)
         {
+            // Save the state in fields so that it's never lost when the method breaks.
             this.acceptedPosition = target.CreateCell<int>("acceptedPosition");
             this.acceptedTokenId = target.CreateCell<int>("acceptedTokenId");
             this.highSurrogate = target.CreateCell<int>("highSurrogate");

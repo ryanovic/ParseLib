@@ -4,6 +4,21 @@
     using System.Collections.Generic;
     using System.Text;
 
+    /// <summary>
+    /// Generates a character set that matches to a specified pattern.
+    /// </summary>
+    /// <example>
+    /// Supports:
+    /// 
+    /// @"abcde0123"         : distinct characters
+    /// @"a-z0-9"            : ranges
+    /// Unicode codes:
+    /// @"\u{0|10-ff|ccc|10000-10FFFF}"
+    /// Unicode categories:
+    /// @"\p{Cc|Cf|Cn|Co|Cs|C|Ll|Lm|Lo|Lt|Lu|L|Mc|Me|Mn|M|Nd|Nl|No|N|Pc|Pd|Pe|Po|Ps|Pf|Pi|P|Sc|Sk|Sm|So|S|Zl|Zp|Zs|Z}"); 
+    /// @"\a\b\t\r\n\v\f\\"  : escape sequences
+    /// @"0-10ffff-[\p{L}]"  : subtract sub-set
+    /// </example>
     internal sealed class CharSetParser
     {
         private const int StateDefault = 0;

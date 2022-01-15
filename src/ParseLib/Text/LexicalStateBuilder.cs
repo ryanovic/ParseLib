@@ -5,7 +5,10 @@
     using System.Globalization;
     using System.Linq;
 
-    internal sealed class InnerStateBuilder
+    /// <summary>
+    /// Represents a builder for a specific lexical state.
+    /// </summary>
+    internal sealed class LexicalStateBuilder
     {
         private LexicalState defaultState;
 

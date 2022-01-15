@@ -3,10 +3,20 @@
     using System;
     using System.Runtime.Serialization;
 
+    /// <summary>
+    /// Represents a grammar level conflict exception.
+    /// </summary>
     [Serializable]
     public class GrammarException : Exception
     {
+        /// <summary>
+        /// Gets the symbol which causes ambiguity.
+        /// </summary>
         public string Symbol { get; }
+
+        /// <summary>
+        /// Get the list of productions involved in a conflict.
+        /// </summary>
         public string[] Productions { get; }
 
         public GrammarException()

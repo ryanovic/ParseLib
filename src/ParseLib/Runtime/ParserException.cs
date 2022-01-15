@@ -3,11 +3,25 @@
     using System;
     using System.Runtime.Serialization;
 
+    /// <summary>
+    /// Represents a runtime exception that occurred during a parse operation.
+    /// </summary>
     [Serializable]
     public class ParserException : Exception
     {
+        /// <summary>
+        /// Gets or sets a position in the source where the exception occured.
+        /// </summary>
         public int Position { get; set; }
+
+        /// <summary>
+        /// Gets or sets a token value that was recognized before the exception occured.
+        /// </summary>
         public string Lexeme { get; set; }
+
+        /// <summary>
+        /// Gets or sets a string represeting all grammar symbols are recognized by the parser. 
+        /// </summary>
         public string ParserState { get; set; }
 
         public ParserException()

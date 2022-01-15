@@ -4,6 +4,9 @@
     using System.Collections.Generic;
     using System.Reflection.Emit;
 
+    /// <summary>
+    /// Represents storage for a lookahead stack item with associated operations.
+    /// </summary>
     public sealed class LookaheadItem
     {
         public ICell Item { get; }

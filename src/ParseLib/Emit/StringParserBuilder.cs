@@ -5,6 +5,9 @@
     using System.Reflection;
     using System.Reflection.Emit;
 
+    /// <summary>
+    /// Implements <see cref="ParserBuilder"/> class for a <see cref="StringParserSource">string</see> input source.
+    /// </summary>
     public sealed class StringParserBuilder : ParserBuilder
     {
         public StringParserBuilder(TypeBuilder target, IParserReducer reducer, Grammar grammar, string goal)
@@ -23,6 +26,7 @@
                 MethodAttributes.Family | MethodAttributes.Virtual,
                 typeof(void), new[] { typeof(string), typeof(int), typeof(int) });
 
+            // String source reader method is never breaks, so we can safely store the parser's state in local variables.
             var il = method.GetILGenerator();
             var charCode = il.CreateCell<int>();
             var categories = il.CreateCell<int>();
@@ -33,6 +37,7 @@
                 ? il.CreateLookaheadStack()
                 : null;
 
+            // Same reason we can use charCode also as a high surrogate storage, since it's guaranteed that it always has previous charcode value.
             var source = CreateSource();
             var lexer = new LexerBuilder(
                 il, LexicalStates, source, this, lhStack, charCode, categories, LexerState, CurrentPosition, acceptedPosition, acceptedTokenId, charCode);

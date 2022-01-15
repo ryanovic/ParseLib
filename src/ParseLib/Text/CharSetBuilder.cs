@@ -4,6 +4,9 @@
     using System.Globalization;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Generates a user defined character set.
+    /// </summary>
     public sealed class CharSetBuilder
     {
         private List<UnicodeRange> ranges = new List<UnicodeRange>();

@@ -5,6 +5,9 @@
     using System.Reflection.Emit;
     using ParseLib.Text;
 
+    /// <summary>
+    /// Implements a dynamic method to match a specified regular expression.
+    /// </summary>
     internal sealed class RexEvaluatorBuilder : LexerBuilderBase
     {
         private readonly LookaheadStack lhStack;
@@ -74,7 +77,7 @@
             IL.Emit(OpCodes.Blt, isValid);
         }
 
-        protected override void CheckEndOfBuffer()
+        protected override void CheckEndOfSource()
         {
         }
 

@@ -9,6 +9,9 @@
     using ParseLib.Runtime;
     using ParseLib.Text;
 
+    /// <summary>
+    /// Implements the basic operations for generating a parser.
+    /// </summary>
     public abstract class ParserBuilder : ILexerTarget
     {
         private readonly Cell<bool> isLineBreak;
@@ -73,11 +76,15 @@
             this.StartPosition = target.CreateCell<int>("startPosition");
             this.CurrentPosition = target.CreateCell<int>("currentPosition");
 
+            // A cell that "remembers" if a line break was detected.
             this.isLineBreak = target.CreateCell<bool>("isNewLine");
             this.stateStack = new ParserStack(target.CreateCell("stateStack", typeof(List<int>)));
             this.dataStack = new ParserStack(target.CreateCell("dataStack", typeof(List<object>)));
         }
 
+        /// <summary>
+        /// Generates a type for the parser.
+        /// </summary>
         public virtual Type Build()
         {
             // Pipeline.            
@@ -104,11 +111,17 @@
             return Target.CreateTypeInfo();
         }
 
+        /// <summary>
+        /// Completes a token defined by the <paramref name="tokenId"/>.
+        /// </summary>
         public virtual void CompleteToken(ILGenerator il, int tokenId)
         {
             HandleLexeme(il, tokenId);
         }
 
+        /// <summary>
+        /// Completes a token defined by the <paramref name="tokenId"/> cell.
+        /// </summary>
         public virtual void CompleteToken(ILGenerator il, Cell<int> tokenId)
         {
             il.Emit(OpCodes.Ldarg_0);
@@ -116,13 +129,18 @@
             il.Emit(OpCodes.Call, handleLexemeMthd);
         }
 
+        /// <summary>
+        /// Completes the <paramref name="source"/>.
+        /// </summary>
         public virtual void CompleteSource(ILGenerator il, ILexerSource source)
         {
             var handleEos = il.DefineLabel();
             var unexpectedChar = il.DefineLabel();
 
+            // If it's not read to the end then throw an exception.
             source.CheckUpperBound(il, CurrentPosition, unexpectedChar);
 
+            // If there is an unrecognized pending lexeme then throw an exception.
             StartPosition.Load(il);
             CurrentPosition.Load(il);
             il.Emit(OpCodes.Beq, handleEos);
@@ -131,13 +149,20 @@
             il.MarkLabel(unexpectedChar);
             ThrowParserException(il, Errors.UnexpectedCharacter());
 
+            // Emit EndOfSource token.
             il.MarkLabel(handleEos);
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, handleEosMthd);
         }
 
+        /// <summary>
+        /// Generates a lexer for the parser.
+        /// </summary>
         protected abstract void BuildLexer();
 
+        /// <summary>
+        /// Initializes the parser with initial values.
+        /// </summary>
         protected virtual void InitializeParser(ILGenerator il)
         {
             stateStack.Initialize(il);
@@ -146,6 +171,10 @@
             LexerState.Update(il, States[0].LexicalState.Id);
         }
 
+        /// <summary>
+        /// Notifies the parser that the specified terminal is completed.
+        /// </summary>
+        /// <remarks>Exceuted after an appropriate user handler is called but before the parser state is updated.</remarks>
         protected virtual void OnTokenCompleted(ILGenerator il, Terminal terminal)
         {
             if (onTokenCompleted != null)
@@ -157,6 +186,10 @@
             }
         }
 
+        /// <summary>
+        /// Notifies the parser that the specified production is completed.
+        /// </summary>
+        /// <remarks>Exceuted after an appropriate user handler is called but before the parser state is updated.</remarks>
         protected virtual void OnProductionCompleted(ILGenerator il, Production production)
         {
             if (onProductionCompleted != null)
@@ -183,6 +216,7 @@
 
         private void BuildConstructors()
         {
+            // Inherit base type constructors.
             foreach (var baseCtor in Target.BaseType.GetConstructors(
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -201,6 +235,12 @@
             }
         }
 
+        /// <summary>
+        /// Generates a method to handle the end of the source.
+        /// </summary>
+        /// <remarks>
+        /// <code>void HandleEndOfSource();</code>
+        /// </remarks>
         private void BuildHandleEndOfSourceMethod()
         {
             var il = handleEosMthd.GetILGenerator();
@@ -211,12 +251,7 @@
             stateStack.Peek(il, 0);
             il.Emit(OpCodes.Switch, labels);
             il.ThrowInvalidOperationException(Errors.InvalidState());
-
-            for (int i = 0; i < States.Length; i++)
-            {
-                il.MarkLabel(labels[i]);
-                HandleEndOfSource(il, States[i], start);
-            }
+            il.Mark(labels, i => HandleEndOfSource(il, States[i], start));
         }
 
         private void HandleEndOfSource(ILGenerator il, StateMetadata state, Label start)
@@ -225,6 +260,7 @@
             {
                 if (item.Head == Symbol.Target)
                 {
+                    // Goal symbol is reduced.
                     stateStack.ReplaceTop(il, 2, () => il.Emit(OpCodes.Ldc_I4_M1));
                     LexerState.Update(il, () => il.Emit(OpCodes.Ldc_I4_M1));
                     il.Emit(OpCodes.Ret);
@@ -241,6 +277,13 @@
             }
         }
 
+
+        /// <summary>
+        /// Generates a method that processes a specific token.
+        /// </summary>
+        /// <remarks>
+        /// <code>void HandleLexeme(int tokenId);</code>
+        /// </remarks>
         private void BuildHandleLexemeMethod()
         {
             var il = handleLexemeMthd.GetILGenerator();
@@ -249,13 +292,11 @@
             il.Emit(OpCodes.Ldarg_1); // token Id
             il.Emit(OpCodes.Switch, labels);
             il.ThrowArgumentOutOfRangeException("tokenId", Errors.TokenOutOfRange());
-
-            for (int i = 0; i < labels.Length; i++)
+            il.Mark(labels, i =>
             {
-                il.MarkLabel(labels[i]);
                 HandleLexeme(il, i);
                 il.Emit(OpCodes.Ret);
-            }
+            });
         }
 
         private void HandleLexeme(ILGenerator il, int tokenId)
@@ -277,6 +318,12 @@
             il.Emit(OpCodes.Call, handleTerminalMthd);
         }
 
+        /// <summary>
+        /// Generates a method that processes a terminal and updates the parser state accordingly.
+        /// </summary>
+        /// <remarks>
+        /// <code>void HandleTerminal(int tokenId, object tokenValue);</code>
+        /// </remarks>
         private void BuildHandleTerminalMethod()
         {
             var il = handleTerminalMthd.GetILGenerator();
@@ -289,16 +336,12 @@
 
             il.Emit(OpCodes.Switch, labels);
             il.ThrowInvalidOperationException(Errors.InvalidState());
-
-            for (int i = 0; i < States.Length; i++)
-            {
-                il.MarkLabel(labels[i]);
-                HandleTerminals(il, States[i], start);
-            }
+            il.Mark(labels, i => HandleTerminals(il, States[i], start));
         }
 
         private void HandleTerminals(ILGenerator il, StateMetadata state, Label start)
         {
+            // Perform a binary search over the list of valid terminals.
             (var intervals, var defaultLabel) = SearchInterval.CreateIntervals(il, state.Terminals.Length);
 
             foreach (var interval in intervals)
@@ -359,19 +402,22 @@
 
                 if (method != null && method.ReturnType != typeof(void))
                 {
-                    // Put terminal value on stack.
+                    // Put a terminal value on the stack.
                     dataStack.Push(il, () => il.Emit(OpCodes.Ldarg_2));
                 }
 
+                // Reset the value for line break cell and update the state.
                 isLineBreak.Update(il, false);
                 LexerState.Update(il, States[next.Id].LexicalState.Id);
                 stateStack.Push(il, () => il.Emit(OpCodes.Ldc_I4, next.Id));
 
+                // Execute user handlers for a new state constructed.
                 HandlePrefixes(il, next);
                 il.Emit(OpCodes.Ret);
             }
-            else
+            else // ParserAction.Reduce
             {
+                // Once the pruduction is processed need to apply a pending token against the updated state.
                 HandleProduction(il, state.ParserState.Reduce[terminal]);
                 il.Emit(OpCodes.Br, start);
             }
@@ -379,18 +425,20 @@
 
         private void HandleWhitespace(ILGenerator il, StateMetadata state, Terminal whitespace)
         {
-            // Whitespace.
             if (Grammar.IsNewLine(whitespace))
             {
+                // Remember that a line break terminal encountered in case it matters.
                 isLineBreak.Update(il, () => il.LoadTrue());
 
                 if (state.ParserState.Shift.TryGetValue(Symbol.LineBreak, out var nextLB))
                 {
+                    // A line break sensitive state. Update accordingly.
                     state = States[nextLB.Id];
                     stateStack.ReplaceTop(il, 1, () => il.Emit(OpCodes.Ldc_I4, nextLB.Id));
                 }
             }
 
+            // Reset the lexer state.
             LexerState.Update(il, () => il.Emit(OpCodes.Ldc_I4, state.LexicalState.Id));
             il.Emit(OpCodes.Ret);
         }
@@ -407,15 +455,18 @@
                 {
                     if (parameters.Length == 0)
                     {
+                        // Push an output onto the value stack.
                         dataStack.Push(il, () => ExecuteMethod(il, method, parameters));
                     }
                     else
                     {
+                        // Replace the top parameters with an output.
                         dataStack.ReplaceTop(il, parameters.Length, () => ExecuteMethod(il, method, parameters));
                     }
                 }
                 else
                 {
+                    // Remove parameters from the value stack.
                     ExecuteMethod(il, method, parameters);
                     dataStack.RemoveTop(il, parameters.Length);
                 }
@@ -429,6 +480,12 @@
             il.Emit(OpCodes.Call, handleNonTerminalMthd);
         }
 
+        /// <summary>
+        /// Generates a method that processes a non-terminal and updates the parser state accordingly.
+        /// </summary>
+        /// <remarks>
+        /// <code>void HandleNonTerminal(int nonTerminalId);</code>
+        /// </remarks>
         private void BuildHandleNonTerminalMethod()
         {
             var il = handleNonTerminalMthd.GetILGenerator();
@@ -438,16 +495,12 @@
             stateStack.Peek(il, 0);
             il.Emit(OpCodes.Switch, labels);
             il.ThrowInvalidOperationException(Errors.InvalidState());
-
-            for (int i = 0; i < States.Length; i++)
-            {
-                il.MarkLabel(labels[i]);
-                HandleNonTerminals(il, States[i]);
-            }
+            il.Mark(labels, i => HandleNonTerminals(il, States[i]));
         }
 
         private void HandleNonTerminals(ILGenerator il, StateMetadata state)
         {
+            // Perform a binary search over the list of valid non-terminals.
             (var intervals, var defaultLabel) = SearchInterval.CreateIntervals(il, state.NonTerminals.Length);
 
             foreach (var interval in intervals)
@@ -494,6 +547,7 @@
 
             if (next.Shift.TryGetValue(Symbol.LineBreak, out var nextLB))
             {
+                // Handle a line break sensitive state.
                 var noLineBreak = il.DefineLabel();
 
                 isLineBreak.Load(il);
@@ -515,12 +569,14 @@
         {
             var set = new HashSet<MethodInfo>();
 
+            // Iterate through the state core items and check if any handler is defined for the prefix.
             foreach (var item in state.Core)
             {
                 var method = Reducer.GetPrefixHandler(item.GetPrefix());
 
                 if (method != null && set.Add(method))
                 {
+                    // Remove an output from the evaluation stack if any.
                     if (ExecuteMethod(il, method))
                     {
                         il.Emit(OpCodes.Pop);
@@ -529,6 +585,10 @@
             }
         }
 
+
+        /// <remarks>
+        /// <code>string GetTerminalName(int terminalId);</code>
+        /// </remarks>
         private void BuildGetTerminalNameMethod()
         {
             var il = getTerminalNameMthd.GetILGenerator();
@@ -538,15 +598,16 @@
             il.Emit(OpCodes.Switch, labels);
             il.Emit(OpCodes.Ldnull);
             il.Emit(OpCodes.Ret);
-
-            for (int i = 0; i < Terminals.Length; i++)
+            il.Mark(labels, i =>
             {
-                il.MarkLabel(labels[i]);
                 il.Emit(OpCodes.Ldstr, Terminals[i].Name);
                 il.Emit(OpCodes.Ret);
-            }
+            });
         }
 
+        /// <remarks>
+        /// <code>string GetNonTerminalName(int nonTerminalId);</code>
+        /// </remarks>
         private void BuildGetNonTerminalNameMethod()
         {
             var il = getNonTerminalNameMthd.GetILGenerator();
@@ -556,13 +617,11 @@
             il.Emit(OpCodes.Switch, labels);
             il.Emit(OpCodes.Ldnull);
             il.Emit(OpCodes.Ret);
-
-            for (int i = 0; i < NonTerminals.Length; i++)
+            il.Mark(labels, i =>
             {
-                il.MarkLabel(labels[i]);
                 il.Emit(OpCodes.Ldstr, NonTerminals[i].Name);
                 il.Emit(OpCodes.Ret);
-            }
+            });
         }
 
         private void LoadSymbolName(ILGenerator il, Symbol symbol)
@@ -585,6 +644,12 @@
             }
         }
 
+        /// <summary>
+        /// Concatenates current symbols on the parser state stack into a string value.
+        /// </summary>
+        /// <remarks>
+        /// <code>string GetParserState();</code>
+        /// </remarks>
         private void BuildGetParserStateMethod()
         {
             var il = getParserStateMthd.GetILGenerator();
@@ -605,7 +670,7 @@
                 stateStack.GetElementAt(il, () => il.Increment(() => index.Load(il)));
                 il.Emit(OpCodes.Switch, labels);
 
-                il.Map(labels, i =>
+                il.Mark(labels, i =>
                 {
                     LoadSymbolName(il, States[i].InputSymbol);
                     il.GoTo(switch_end);
@@ -621,6 +686,9 @@
             il.Emit(OpCodes.Ret);
         }
 
+        /// <remarks>
+        /// <code>int StartPosition { get; }</code>
+        /// </remarks>
         private void BuildStartPositionProperty()
         {
             var method = Target.DefineMethod("get_StartPosition",
@@ -631,6 +699,9 @@
             il.Emit(OpCodes.Ret);
         }
 
+        /// <remarks>
+        /// <code>int CurrentPosition { get; }</code>
+        /// </remarks>
         private void BuildCurrentPositionProperty()
         {
             var method = Target.DefineMethod("get_CurrentPosition",
@@ -641,6 +712,9 @@
             il.Emit(OpCodes.Ret);
         }
 
+        /// <remarks>
+        /// <code>bool IsCompleted { get; }</code>
+        /// </remarks>
         private void BuildIsCompletedProperty()
         {
             var method = Target.DefineMethod("get_IsCompleted",
@@ -653,6 +727,12 @@
             il.Emit(OpCodes.Ret);
         }
 
+        /// <summary>
+        /// Generates the method that return a value form the top of the value stack or <c>null</c> if the stack is emtpy.
+        /// </summary>
+        /// <remarks>
+        /// <code>object GetTopValue();</code>
+        /// </remarks>
         private void BuildGetTopValueMethod()
         {
             var method = Target.DefineMethod("GetTopValue",

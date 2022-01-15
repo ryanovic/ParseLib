@@ -6,6 +6,9 @@
     using System.Collections.Generic;
     using ParseLib.Runtime;
 
+    /// <summary>
+    /// Stores shortcuts for reflection types.
+    /// </summary>
     internal static class ReflectionInfo
     {
         public static Type LookaheadTuple => typeof(ValueTuple<int, int, int>);

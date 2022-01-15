@@ -5,6 +5,9 @@
     using System.Reflection;
     using System.Reflection.Emit;
 
+    /// <summary>
+    /// Generates a dynamic assembly and provides methods for runtime type generation. 
+    /// </summary>
     internal static class DynamicModule
     {
         private static readonly object syncRoot = new object();

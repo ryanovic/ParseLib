@@ -6,6 +6,9 @@
     using System.Globalization;
     using System.Linq;
 
+    /// <summary>
+    /// Generates lexical states.
+    /// </summary>
     public sealed class LexicalStatesBuilder : ILexicalStates
     {
         private bool ignoreCase;
@@ -60,7 +63,7 @@
         private LexicalState CreateStates(Position[] positions)
         {
             var state = CreateState(positions);
-            var builder = new InnerStateBuilder();
+            var builder = new LexicalStateBuilder();
 
             while (queue.Count > 0)
             {
@@ -70,7 +73,7 @@
             return state;
         }
 
-        private void InitializeState(LexicalStateQueueItem item, InnerStateBuilder builder)
+        private void InitializeState(LexicalStateQueueItem item, LexicalStateBuilder builder)
         {
             var charSets = GetCharSets(item.Positions);
 
@@ -84,17 +87,19 @@
 
             var state = item.State;
             var surrogate = state.CreateSurrogate();
-            var selected = new Selection(charSets.Count);
-            var indexesByCategory = GetIndexesByCategory(charSets);
-            var rangeMinPQ = new UnicodeRangeMinPQ(GetRanges(charSets, selected));
+            var selected = new Selection(charSets.Count); // a set indicating selected charset indexes.
+            var indexesByCategory = GetIndexesByCategory(charSets); // Ll -> 0, 1, 2; Nd -> 1, 3; ...
+            var rangeMinPQ = new UnicodeRangeMinPQ(GetRanges(charSets, selected)); // Unicode range splitter.
 
             while (!rangeMinPQ.IsEmpty)
             {
+                // Get the next distinct range and select related charsets.
                 (var range, var indexes) = rangeMinPQ.PopMin();
                 selected.Add(indexes);
 
                 if (range.From >= UnicodeRange.SurrogateStart && range.To <= UnicodeRange.SurrogateEnd)
                 {
+                    // Cut out surrogate ranges except high surrogate -> surrogate state transition.
                     if (range.To == UnicodeRange.SurrogateEnd)
                     {
                         builder.AddRange(UnicodeRanges.HighSurrogate[0], surrogate);
@@ -102,6 +107,7 @@
                 }
                 else if (range.Length == 1)
                 {
+                    // Single char range. Unicode category is known at compile time.
                     var uc = (int)GetUnicodeCategory(range.From);
                     selected.Add(indexesByCategory[uc] ?? Array.Empty<int>());
                     builder.AddRange(range, CreateNextState(item.Positions, selected));
@@ -148,7 +154,7 @@
             HasLookaheads |= state.IsLookaheadStart;
         }
 
-        private void CreateStatesByCategory(InnerStateBuilder builder, IList<int>[] indexesList, Position[] set, Selection selected)
+        private void CreateStatesByCategory(LexicalStateBuilder builder, IList<int>[] indexesList, Position[] set, Selection selected)
         {
             for (int i = 0; i < indexesList.Length; i++)
             {
@@ -203,11 +209,11 @@
             }
             else if (node.Positions.Length == 0)
             {
-                return CreateState(node.Left); // does not match
+                return CreateState(node.Left); // does not match.
             }
             else if (node.Positions.Any(p => p is AcceptPosition))
             {
-                return CreateState(node.Right); // does match at start
+                return CreateState(node.Right); // does match at start.
             }
             else
             {

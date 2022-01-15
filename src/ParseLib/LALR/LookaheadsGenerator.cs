@@ -4,6 +4,9 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Generates lookaheads for the parser states. 
+    /// </summary>
     internal class LookaheadsGenerator
     {
         private readonly List<ParserState> states;
@@ -21,8 +24,14 @@
 
         public void GenerateLookaheads()
         {
+            // The idea is to collect a list of items that are started in the state (non-core items).
+            // Then we trace each item to the final state.
+            // Finally we consider the state that the reduced item leads to.
+            // Then any terminal from the next state becomes a lookahead in the final state. 
+            // Iterates through the list of states until nothing more to change.
             CollectFinalStates();
 
+            // Reduce goal symbol on the $EoS.
             var root = states[0].Core[0];
             states[0].Shift[root.Symbol].Reduce.Add(Symbol.EndOfSource, root.Production);
 

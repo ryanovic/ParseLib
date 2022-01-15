@@ -2,6 +2,9 @@
 {
     using System;
 
+    /// <summary>
+    /// Represents the basis for a string parser.
+    /// </summary>
     public abstract class StringParser : ParserBase
     {
         protected string Content { get; }
@@ -28,6 +31,10 @@
             }
         }
 
+        /// <summary>
+        /// Processes a defined string value.
+        /// </summary>
+        /// <remarks>The method is implemented by a string parser generator.</remarks>
         protected abstract void Read(string content, int offset, int length);
 
         protected string GetLexeme(int trimLeft, int trimRight)

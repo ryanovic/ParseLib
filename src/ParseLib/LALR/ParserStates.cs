@@ -4,6 +4,9 @@
     using System.Collections;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Represents the set of parser states.
+    /// </summary>
     internal class ParserStates : IParserStates
     {
         private readonly List<ParserState> states;

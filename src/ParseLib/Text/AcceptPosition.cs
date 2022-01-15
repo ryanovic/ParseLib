@@ -1,5 +1,8 @@
 ﻿namespace ParseLib.Text
 {
+    /// <summary>
+    /// Represents a position that accepts the expression. 
+    /// </summary>
     internal sealed class AcceptPosition : Position
     {
         public bool IsLazy { get; }

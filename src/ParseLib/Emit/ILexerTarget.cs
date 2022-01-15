@@ -4,6 +4,9 @@
     using System.Reflection.Emit;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Represents a lexical analyzer output handler. 
+    /// </summary>
     public interface ILexerTarget
     {
         void CompleteToken(ILGenerator il, int tokenId);

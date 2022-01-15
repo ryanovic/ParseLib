@@ -3,6 +3,9 @@
     using System;
     using System.Reflection.Emit;
 
+    /// <summary>
+    /// Implements a wrapper for a type field.
+    /// </summary>
     internal sealed class FieldCell : ICell
     {
         private readonly FieldBuilder field;

@@ -4,6 +4,9 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Generates a set of LALR state items for a specified grammar and goal symbol.
+    /// </summary>
     public class ParserStatesBuilder
     {
         private readonly IConflictResolver conflictResolver;
@@ -13,8 +16,13 @@
 
         public ParserStatesBuilder(Symbol goal, IConflictResolver conflictResolver = null)
         {
+            if (goal == null)
+            {
+                throw new ArgumentNullException(nameof(goal));
+            }
+
             this.conflictResolver = conflictResolver ?? ConflictResolver.Default;
-            CreateRootState(goal ?? throw new ArgumentNullException(nameof(goal)));
+            CreateRootState(goal);
         }
 
         public IParserStates CreateStates()
@@ -37,6 +45,8 @@
 
             if (items.Any(x => x.LineBreak != LineBreakModifier.None))
             {
+                // Split a line-break sensitive state in two parts.
+                // The LB state can (and will) have a different set of core items.
                 var stateLB = CreateLineBreakState(state);
 
                 InitializeState(state, GetItems(state));
@@ -48,6 +58,9 @@
 
                 if (state.Completed.Any(x => IsLineBreakSensitiveOnReduce(x)))
                 {
+                    // If we have any completed item that depends on a line-break following it,
+                    // then let's crete a LB state that wiil be equal to the original state
+                    // but have the line-break modifier changed.
                     CreateLineBreakState(state);
                 }
             }
@@ -57,6 +70,7 @@
         {
             if (items.Count > 0)
             {
+                // Group the items by a current symbol.
                 items.Sort(ParserItem.CompareBySymbol);
                 var symbol = items[0].Symbol;
 
@@ -85,6 +99,7 @@
 
                         if ((lo = hi) < items.Count)
                         {
+                            // Start a new group.
                             symbol = items[lo].Symbol;
                         }
                     }
@@ -92,20 +107,25 @@
             }
         }
 
-        private ParserItem[] CreateNextCore(Symbol symbol, List<ParserItem> items, int index, int length)
+        private ParserItem[] CreateNextCore(Symbol symbol, List<ParserItem> items, int offset, int length)
         {
             var core = new ParserItem[length];
 
             for (int i = 0; i < core.Length; i++)
             {
-                core[i] = items[index + i].CreateNextItem();
+                core[i] = items[offset + i].CreateNextItem();
             }
 
             core = conflictResolver.ResolveCoreConflicts(symbol, core) ?? Array.Empty<ParserItem>();
+
+            // Make sure the core is ordered to compare states in linear time.
             Array.Sort(core, ParserItem.CompareByProduction);
             return core;
         }
 
+        /// <summary>
+        /// Expands the state core.
+        /// </summary>
         private List<ParserItem> GetItems(ParserState state)
         {
             var queue = new Queue<ParserItem>();
@@ -113,6 +133,7 @@
             var items = new List<ParserItem>();
 
             // Initialize the Queue.
+            // Exclude productions which are incompatible with the state line-break modifier.
             foreach (var item in state.Core.Where(x => x.IsAllowed(state)))
             {
                 queue.Enqueue(item);
@@ -173,12 +194,12 @@
             }
         }
 
-        private ParserState CreateState(Symbol shiftOn, ParserItem[] core)
+        private ParserState CreateState(Symbol inputSymbol, ParserItem[] core)
         {
-            if (!statesBySymbol.TryGetValue(shiftOn, out var states))
+            if (!statesBySymbol.TryGetValue(inputSymbol, out var states))
             {
                 states = new List<ParserState>();
-                statesBySymbol.Add(shiftOn, states);
+                statesBySymbol.Add(inputSymbol, states);
             }
 
             foreach (var state in states)

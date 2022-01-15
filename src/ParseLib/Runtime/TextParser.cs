@@ -65,6 +65,16 @@
             }
         }
 
+        /// <summary>
+        /// Processes text from a specified buffer.
+        /// </summary>
+        /// <param name="bufferPosition">The source position corresponding to the beginning of the buffer.</param>
+        /// <param name="buffer">The data buffer containing a sequence of pending character codes.</param>
+        /// <param name="offset">The buffer start index.</param>
+        /// <param name="length">The buffer length.</param>
+        /// <param name="endOfSource">The value indicating whether the source is completed indicating the buffer is a last data chunk in a row.</param>
+        /// <returns><c>true</c> if the buffer is entirelly read or <c>false</c> if a current position is restored before the buffer start.</returns>
+        /// <remarks>The method is implemented by a sequential parser generator.</remarks>
         protected abstract bool Read(int bufferPosition, char[] buffer, int offset, int length, bool endOfSource);
 
         protected string GetLexeme(int trimLeft, int trimRight)

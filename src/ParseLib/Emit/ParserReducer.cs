@@ -5,8 +5,16 @@
     using System.Reflection;
     using ParseLib.Runtime;
 
+    /// <summary>
+    /// Represents a collection of grammar reducers.
+    /// </summary>
     public class ParserReducer : IParserReducer
     {
+        /// <summary>
+        /// Collects reducers defined in the <paramref name="target"/> type.
+        /// </summary>
+        /// <param name="skipValidation">Allows reducers which are not defined in the grammar.</param>
+        /// <remarks><c>BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static</c></remarks>
         public static ParserReducer CreateReducer(Type target, Grammar grammar, bool skipValidation = false)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));

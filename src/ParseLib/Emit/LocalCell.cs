@@ -3,6 +3,9 @@
     using System;
     using System.Reflection.Emit;
 
+    /// <summary>
+    /// Implements a wrapper for a local variable.
+    /// </summary>
     internal sealed class LocalCell : ICell
     {
         private readonly LocalBuilder local;

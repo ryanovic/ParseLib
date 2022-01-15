@@ -4,6 +4,9 @@
     using System.Collections.Generic;
     using System.Reflection.Emit;
 
+    /// <summary>
+    /// Represents a generic store for a value of <typeparamref name="T"/> type.
+    /// </summary>
     public readonly struct Cell<T> : ICell, IEquatable<Cell<T>>
     {
         private readonly ICell store;

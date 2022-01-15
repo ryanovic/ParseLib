@@ -5,6 +5,9 @@
     using System.Collections.Generic;
     using ParseLib.Text;
 
+    /// <summary>
+    /// Implements a lexical analyzer that accepts <see cref="ILexerSource"/> as a source and <see cref="ILexerTarget"/> as a target interfaces.
+    /// </summary>
     public sealed class LexerBuilder : LexerBuilderBase
     {
         public ILexerSource Source { get; }
@@ -19,6 +22,21 @@
         private readonly LookaheadStack lookaheadStack;
         private readonly LookaheadItem lookaheadItem;
 
+        /// <summary>
+        /// Create an instance of the <see cref="LexerBuilder"/> class.
+        /// </summary>
+        /// <param name="il">The IL geneartor.</param>
+        /// <param name="states">The collection of lexical analyzer states.</param>        
+        /// <param name="source">The object that provides interaction with the source.</param>
+        /// <param name="target">The target reducer responsible for processing recognized tokens.</param>
+        /// <param name="lhStack">The storage that holds lookahead return states.</param>
+        /// <param name="charCode">The cell in which a current character code is stored.</param>
+        /// <param name="categories">The cell in which a current character category is stored.</param>
+        /// <param name="state">The cell in which a current lexer state is stored.</param>
+        /// <param name="position">The cell in which a current position is stored.</param>
+        /// <param name="acceptedPosition">The cell in which the most recent accepted token position is stored.</param>
+        /// <param name="acceptedTokenId">The cell in which the most recent accepted token ID is stored.</param>
+        /// <param name="highSurrogate">The cell in which the high surroage is stored.</param>
         public LexerBuilder(
             ILGenerator il,
             ILexicalStates states,
@@ -74,7 +92,7 @@
             Source.CheckUpperBound(IL, position, isValid);
         }
 
-        protected override void CheckEndOfBuffer()
+        protected override void CheckEndOfSource()
         {
             if (Source.IsSequental)
             {

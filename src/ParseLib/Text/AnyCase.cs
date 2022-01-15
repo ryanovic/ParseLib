@@ -1,5 +1,14 @@
 ﻿namespace ParseLib.Text
 {
+    using System;
+
+    /// <summary>
+    /// Represents a range of characters and an operation that extends the range to any case range.
+    /// </summary>
+    /// <example>
+    /// ['a' - 'z'] -> ['A' - 'Z', 'a' - 'z']
+    /// ['A' - 'Z'] -> ['A' - 'Z', 'a' - 'z']
+    /// </example>
     internal readonly struct AnyCase
     {
         public const int Set = 0;
@@ -15,6 +24,9 @@
 
         public UnicodeRange Range => new UnicodeRange(From, To);
 
+        /// <summary>
+        /// A collection of <see cref="AnyCase"/> items that was generated based on the <see cref="Char.ToLower(char)"/> and <see cref="Char.ToUpper(char)(char)"/> methods.
+        /// </summary>
         public static AnyCase[] Ranges = new[] {
             new AnyCase(0x41, 0x5a, Add, 32),
             new AnyCase(0x61, 0x7a, Add, -32),

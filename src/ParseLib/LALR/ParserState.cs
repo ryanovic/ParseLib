@@ -3,14 +3,43 @@
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Represents a parser state.
+    /// </summary>
     public class ParserState
     {
         public int Id { get; }
+
+        /// <summary>
+        /// Gets or sets the line break sensitivity modifier.
+        /// </summary>
         public LineBreakModifier LineBreak { get; set; }
+
+        /// <summary>
+        /// Gets the set of core items.
+        /// </summary>
         public ParserItem[] Core { get; }
+
+        /// <summary>
+        /// Gets the set of completed productions.
+        /// </summary>
         public Production[] Completed { get; set; }
+
+        /// <summary>
+        /// Gets the state per symbol transition set.  
+        /// </summary>
         public Dictionary<Symbol, ParserState> Shift { get; }
+
+        /// <summary>
+        /// Gets the production per symbol reduction set. The production is set from the <see cref="Completed"/> collection.
+        /// </summary>
         public Dictionary<Symbol, Production> Reduce { get; }
+
+        /// <summary>
+        /// Get the final action table for the state.
+        /// For each <c>Shift</c> action there is an entry in the <see cref="Shift"/> set.
+        /// For <c>Reduce</c> actions there should be match in the <see cref="Reduce"/> set.
+        /// </summary>
         public Dictionary<Symbol, ParserAction> Actions { get; }
 
         public ParserState(int id, ParserItem[] core)

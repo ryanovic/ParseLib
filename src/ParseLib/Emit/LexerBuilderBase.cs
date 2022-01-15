@@ -5,6 +5,9 @@
     using System.Reflection.Emit;
     using ParseLib.Text;
 
+    /// <summary>
+    /// Implements the basic operations for generating a lexical analyzer.
+    /// </summary>
     public abstract class LexerBuilderBase
     {
         private readonly Label selectStateLabel_CheckLowerBound;
@@ -12,13 +15,38 @@
         private readonly Label deadStateLabel;
         private readonly Label[] stateLabels;
 
+        /// <summary>
+        /// The IL generator.
+        /// </summary>
         public ILGenerator IL { get; }
+
+        /// <summary>
+        /// The collection of lexer states;
+        /// </summary>
         public ILexicalStates States { get; }
+
+        /// <summary>
+        /// Indicates whether a lexer contains lookaheads states.
+        /// </summary>
         public bool HasLookaheads => States.HasLookaheads;
 
+        /// <summary>
+        /// The cell for a current character code.
+        /// </summary>
         protected Cell<int> CharCode { get; }
+
+        /// <summary>
+        /// The cell for a current character category.
+        /// </summary>
         protected Cell<int> UnicodeCategories { get; }
 
+        /// <summary>
+        /// Create an instance of the <see cref="LexerBuilderBase"/> class.
+        /// </summary>
+        /// <param name="il">The IL geneartor.</param>
+        /// <param name="states">The collection of lexical analyzer states.</param>
+        /// <param name="charCode">The cell in which a current character code is stored.</param>
+        /// <param name="categories">The cell in which a current character category is stored.</param>
         public LexerBuilderBase(ILGenerator il, ILexicalStates states, Cell<int> charCode, Cell<int> categories)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
@@ -36,6 +64,9 @@
             this.UnicodeCategories = categories;
         }
 
+        /// <summary>
+        /// Generates a lexical analyzer.
+        /// </summary>
         public virtual void Build()
         {
             IL.MarkLabel(selectStateLabel_CheckLowerBound);
@@ -61,15 +92,19 @@
 
             if (HasLookaheads)
             {
+                // If a dead state is reached during lookahead processing then
+                // restore the position and continue execution from the state corresponding the negative lookahead condition.
                 CheckIsLookahead(onFalse: label);
                 PopLookaheadState(success: false);
                 GoToSelectState(checkLowerBound: true);
                 label = IL.MarkAndDefine(label);
             }
 
+            // Check if an accepted state has been reached before the point.
             CheckHasAcceptedToken(onFalse: label);
             CompleteLastAcceptedToken();
 
+            // No more characters can be accepted.
             IL.MarkLabel(label);
             CompleteSource();
         }
@@ -78,6 +113,7 @@
         {
             if (current.IsLookaheadFinal)
             {
+                // Complete lookahead as soon as a final state is discovered.
                 PopLookaheadState(success: true);
                 GoToSelectState(checkLowerBound: true);
                 return;
@@ -86,9 +122,12 @@
             var label = IL.DefineLabel();
 
             CheckUpperBound(isValid: label);
-            CheckEndOfBuffer();
+            CheckEndOfSource();
+
+            // The end of the source has been reached.
             HandleStateTransition(current, next: null);
 
+            // Handle the next character.
             IL.MarkLabel(label);
             UpdateCharCode(current);
             HandleStateTransitions(current);
@@ -96,14 +135,17 @@
 
         protected virtual void HandleStateTransitions(LexicalState current)
         {
+            // Perform a binary search over the the available intervals.
             (var intervals, var defaultLabel) = SearchInterval.CreateIntervals(IL, current.Ranges.Length);
 
             foreach (var interval in intervals)
             {
+                // [left] ... [item] ... [right]
                 var item = current.Ranges[interval.Middle];
 
                 IL.MarkLabel(interval.Label);
 
+                // The interval contains a single character code.
                 if (interval.IsSingle && item.Range.Length == 1)
                 {
                     CharCode.Load(IL);
@@ -114,6 +156,7 @@
                 {
                     if (!IsLowerBound(item.Range))
                     {
+                        // Go left if the character code less than the lower bound of the current range. 
                         CharCode.Load(IL);
                         IL.Emit(OpCodes.Ldc_I4, item.Range.From);
                         IL.Emit(OpCodes.Blt, interval.Left);
@@ -121,6 +164,7 @@
 
                     if (!IsUpperBound(item.Range))
                     {
+                        // Go right if the character code greater than the upper bound of the current range. 
                         CharCode.Load(IL);
                         IL.Emit(OpCodes.Ldc_I4, item.Range.To);
                         IL.Emit(OpCodes.Bgt, interval.Right);
@@ -130,6 +174,7 @@
                 HandleStateTransition(current, item.Default, item.Categories);
             }
 
+            // No matches.
             IL.MarkLabel(defaultLabel);
             HandleStateTransition(current, current.Default, current.Categories);
         }
@@ -222,19 +267,36 @@
             IL.GoTo(deadStateLabel);
         }
 
+        /// <summary>
+        /// Loads a current state of the lexer and puts its value onto the evaluation stack.
+        /// </summary>
         protected abstract void LoadState();
+
+        /// <summary>
+        /// Moves the lexer to the <paramref name="next"/> state.
+        /// </summary>
         protected abstract void MoveNext(LexicalState next);
+
+        /// <summary>
+        /// Loads a character code correspoinding the <paramref name="current"/> state of the lexer.
+        /// </summary>
         protected abstract void LoadCharCode(LexicalState current);
 
+        /// <summary>
+        /// Loads a character category correspoinding the <paramref name="current"/> state of the lexer.
+        /// </summary>
+        /// <remarks>The <see cref="CharCode"/> property is expected to be updated with the recent value at this point.</remarks>
         protected virtual void LoadUnicodeCategory(LexicalState current)
         {
             if (ReflectionInfo.Char_GetCategoryByInt32 != null)
             {
+                // .Net Standard 2.1+
                 CharCode.Load(IL);
                 IL.Emit(OpCodes.Call, ReflectionInfo.Char_GetCategoryByInt32);
             }
             else if (current.IsLowSurrogate)
             {
+                // .Net Standard 2.0
                 CharCode.Load(IL);
                 IL.Emit(OpCodes.Call, ReflectionInfo.Char_FromUtf32);
                 IL.Emit(OpCodes.Ldc_I4_0);
@@ -247,26 +309,73 @@
             }
         }
 
+        /// <summary>
+        /// Ensures that the current position is equal to or greater than the buffer start.
+        /// </summary>
         protected abstract void CheckLoweBound();
-        protected abstract void CheckUpperBound(Label isValid);
-        protected abstract void CheckEndOfBuffer();
 
+        /// <summary>
+        /// Jumps to the <paramref name="isValid"/> label if the poisition is within the bounds of the buffer.
+        /// </summary>
+        protected abstract void CheckUpperBound(Label isValid);
+
+        /// <summary>
+        /// Ensures that the end of the source is reached.
+        /// </summary>
+        protected abstract void CheckEndOfSource();
+
+        /// <summary>
+        /// Jumps to the <paramref name="onFalse"/> label if a lookahead sub-expression is currently being evaluated.
+        /// </summary>
         protected abstract void CheckIsLookahead(Label onFalse);
+
+        /// <summary>
+        /// Completes a lookahead sub-expression and resets the position and state according to the <paramref name="success"/> argument.
+        /// </summary>
         protected abstract void PopLookaheadState(bool success);
+
+        /// <summary>
+        /// Saves the current state and position and begins evaluation of a lookahead sub-expression.
+        /// </summary>
         protected abstract void PushLookaheadState(LexicalState current);
 
+        /// <summary>
+        /// Jumps to the <paramref name="onFalse"/> label if no tokens were recognized before the position.
+        /// </summary>
         protected abstract void CheckHasAcceptedToken(Label onFalse);
+
+        /// <summary>
+        /// Saves the current possition as accepted for the <paramref name="tokenId"/>.
+        /// </summary>
         protected abstract void SaveAcceptedToken(int tokenId);
 
+        /// <summary>
+        /// Restores the state and position to the last accepted token and completes it.
+        /// </summary>
         protected abstract void CompleteLastAcceptedToken();
+
+        /// <summary>
+        /// Completes the token defined by <paramref name="tokenId"/> argument.
+        /// </summary>
         protected abstract void CompleteToken(int tokenId);
+
+        /// <summary>
+        /// Completes the source evaluation.
+        /// </summary>
         protected abstract void CompleteSource();
 
+        /// <summary>
+        /// Updates the <see cref="CharCode"/> cell with a character code corresponding to the current position.
+        /// </summary>
         private void UpdateCharCode(LexicalState current)
         {
             CharCode.Update(IL, () => LoadCharCode(current));
         }
 
+        /// <summary>
+        /// Updates the <see cref="UnicodeCategories"/> cell with a Unicode category corresponding to the current position.
+        /// </summary>
+        /// <remarks>The <see cref="CharCode"/> property is expected to be updated with the recent value at this point.</remarks>
         private void UpdateUnicodeCategories(LexicalState current)
         {
             UnicodeCategories.Update(IL, () =>

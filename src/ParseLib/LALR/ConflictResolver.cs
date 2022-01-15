@@ -3,8 +3,14 @@
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Default implementation of the <see cref="IConflictResolver"/> interface.
+    /// </summary>
     public class ConflictResolver : IConflictResolver
     {
+        /// <summary>
+        /// Gets the shared <seealso cref="ConflictResolver"/> instance.
+        /// </summary>
         public static ConflictResolver Default { get; } = new ConflictResolver();
 
         public virtual ParserAction ResolveShiftConflict(Symbol symbol, Production production)

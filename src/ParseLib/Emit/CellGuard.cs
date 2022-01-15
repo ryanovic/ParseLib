@@ -5,6 +5,10 @@
 
     internal static class CellGuard
     {
+        /// <summary>
+        /// Checks if the <paramref name="cell"/> matches the <paramref name="expectedType"/> type.
+        /// </summary>
+        /// <returns>The original <paramref name="cell"/> from the method's arguments.</returns>
         public static ICell Check(string paramName, ICell cell, Type expectedType)
         {
             if (cell == null)

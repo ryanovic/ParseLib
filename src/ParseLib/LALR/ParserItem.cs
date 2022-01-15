@@ -4,14 +4,32 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Represents a grammar production at a specific position.
+    /// </summary>
     public sealed class ParserItem : IEquatable<ParserItem>
     {
         internal static int CompareBySymbol(ParserItem x, ParserItem y) => x.Symbol.Name.CompareTo(y.Symbol.Name);
         internal static int CompareByProduction(ParserItem x, ParserItem y) => x.Production.Name.CompareTo(y.Production.Name);
 
+        /// <summary>
+        /// Gets the current index in the production.
+        /// </summary>
         public int Index { get; }
+
+        /// <summary>
+        /// Get the produciton.
+        /// </summary>
         public Production Production { get; }
+
+        /// <summary>
+        /// Get the current symbol.
+        /// </summary>
         public Symbol Symbol => Production[Index];
+
+        /// <summary>
+        /// Get the line break modifier for the current position.
+        /// </summary>
         public LineBreakModifier LineBreak => Production.GetLineBreakModifier(Index);
 
         public ParserItem(Production production)
@@ -32,6 +50,9 @@
             this.Production = production;
         }
 
+        /// <summary>
+        /// Gets a sybmols sub-array before the current position.
+        /// </summary>
         public Symbol[] GetPrefix()
         {
             var symbols = new Symbol[Index];
@@ -44,10 +65,19 @@
             return symbols;
         }
 
+        /// <summary>
+        /// Gets a value indicating wether the production can be applied to the specified state at the current position according to the state line-break modifier.
+        /// </summary>
         public bool IsAllowed(ParserState state) => IsAllowed(state.LineBreak);
 
+        /// <summary>
+        /// Gets a value indicating whether the production can be applied at the current position according to the specified line-break modifier.
+        /// </summary>
         public bool IsAllowed(LineBreakModifier lineBreak) => (LineBreak | lineBreak) != LineBreakModifier.Forbidden;
 
+        /// <summary>
+        /// Gets an item for the production at the next position.
+        /// </summary>
         public ParserItem CreateNextItem()
         {
             return new ParserItem(Production, Index + 1);

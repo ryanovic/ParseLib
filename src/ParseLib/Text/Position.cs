@@ -4,9 +4,19 @@
     using System.Linq;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Represents a position that matches the expression at some point.
+    /// </summary>
     internal abstract class Position
     {
+        /// <summary>
+        /// Gets or sets a token ID, determined by the expression, to which the position belongs.
+        /// </summary>
         public int TokenId { get; }
+
+        /// <summary>
+        /// Gets or sets a collection of the following positions.
+        /// </summary>
         public Position[] Next { get; set; }
 
         public Position(int tokenId)
@@ -19,6 +29,9 @@
             this.TokenId = tokenId;
         }
 
+        /// <summary>
+        /// Connects each position in the target set to each position in the source set as the next.
+        /// </summary>
         public static void Connect(Position[] source, Position[] target)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -38,6 +51,9 @@
             }
         }
 
+        /// <summary>
+        /// Generates a combined set of unique positions.
+        /// </summary>
         public static Position[] Union(Position[] setA, Position[] setB)
         {
             if (setA == null) throw new ArgumentNullException(nameof(setA));
