@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Raman Yanovich</Authors>
+    <Company></Company>
+    <Product />
+    <Description>.NET library that provides tools and components for dynamic parsers generation.</Description>
+    <Copyright>Copyright (c) Raman Yanovich 2022</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ryanovic/ParseLib</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ryanovic/ParseLib/tree/main/src/ParseLib</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>LALR grammar emit parser lexer generator</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
