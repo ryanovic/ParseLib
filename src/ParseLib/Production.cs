@@ -5,6 +5,9 @@
     using System.Linq;
     using ParseLib.LALR;
 
+    /// <summary>
+    /// Represents a production.
+    /// </summary>
     public sealed class Production
     {
         private readonly ProductionItem[] items;
@@ -15,7 +18,15 @@
         public string Name { get; }
         public int Size => items.Length - 1;
         public Symbol this[int index] => items[index].Symbol;
+
+        /// <summary>
+        /// Gets a set of lookaheads allowed for the production. If the set is not specified, then any valid lookahed is allowed.
+        /// </summary>
         public ISet<Symbol> Lookaheads => lookaheads;
+
+        /// <summary>
+        /// Gets a set of rules defining how a shift-reduce conflict should be resolved.
+        /// </summary>
         public IDictionary<Symbol, ParserAction> ResolveOn => resolveOn;
 
         public Production(Symbol head, string name, Symbol[] symbols)
@@ -25,8 +36,14 @@
             this.items = GetItems(symbols ?? throw new ArgumentNullException(nameof(symbols)));
         }
 
+        /// <summary>
+        /// Gets a line-break modifier for a symbol at a specified index.
+        /// </summary>
         public LineBreakModifier GetLineBreakModifier(int index) => items[index].LineBreak;
 
+        /// <summary>
+        /// Sets a set of lookaheads on which a target production can be reduced. The set may contain the [LB] and [NoLB] symbols.
+        /// </summary>
         public void OverrideLookaheads(params Symbol[] symbols)
         {
             if (lookaheads == null)
@@ -38,6 +55,9 @@
             lookaheads.UnionWith(symbols);
         }
 
+        /// <summary>
+        /// Sets a set of lookaheads according to which a <c>reduce</c>-action should be preferred in case of a <c>shift-reduce</c> conflict.
+        /// </summary>
         public void ReduceOn(Symbol symbol)
         {
             if (resolveOn == null)
@@ -48,6 +68,9 @@
             resolveOn.Add(symbol, ParserAction.Reduce);
         }
 
+        /// <summary>
+        /// Sets a set of lookaheads according to which a <c>shift</c>-action should be preferred in case of a <c>shift-reduce</c> conflict.
+        /// </summary>
         public void ShiftOn(Symbol symbol)
         {
             if (resolveOn == null)

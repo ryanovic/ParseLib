@@ -278,6 +278,7 @@
                 {
                     var cs = text.CharSet;
 
+                    // Flatten sub-charsets.
                     while (cs != null)
                     {
                         csets.Add(ignoreCase ? cs.ToAnyCase() : cs);
@@ -297,6 +298,7 @@
             {
                 if (charSets[i].Ranges == UnicodeRanges.All)
                 {
+                    // Make any-range charsets as always selected.
                     selected.Add(i);
                     ranges[i] = UnicodeRanges.Empty;
                 }

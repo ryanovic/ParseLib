@@ -4,6 +4,9 @@
     using System.Collections.Generic;
     using System.Text;
 
+    /// <summary>
+    /// Represents a priority queue that joins multiple unicode ranges into a single, ordered, disjoint sequence.
+    /// </summary>
     internal sealed class UnicodeRangeMinPQ
     {
         private int count;
@@ -26,6 +29,9 @@
             Populate();
         }
 
+        /// <summary>
+        /// Get the next range and a list of associated indexes.
+        /// </summary>
         public (UnicodeRange, int[]) PopMin()
         {
             if (count == 0) throw new InvalidOperationException();

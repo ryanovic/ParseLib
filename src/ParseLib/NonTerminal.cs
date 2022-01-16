@@ -6,6 +6,9 @@
     using System.Linq.Expressions;
     using System.Text;
 
+    /// <summary>
+    /// Represents a non-terminal symbol.
+    /// </summary>
     public class NonTerminal : Symbol, IEnumerable<Production>
     {
         private readonly Dictionary<string, Production> productions;

@@ -6,6 +6,9 @@
     using System.Collections.Generic;
     using System.Text;
 
+    /// <summary>
+    /// Represents a set of Unicode categories.
+    /// </summary>
     public readonly struct UnicodeCategories : IEquatable<UnicodeCategories>
     {
         public const int Count = 30;

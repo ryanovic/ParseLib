@@ -2,6 +2,9 @@
 {
     using System;
 
+    /// <summary>
+    /// Represents a node that allows conditional expression evaluation.
+    /// </summary>
     internal sealed class RexSentinel : RexNode
     {
         public override bool Nullable => false;

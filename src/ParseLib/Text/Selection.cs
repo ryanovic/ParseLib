@@ -3,6 +3,9 @@
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Represents an indexes set.
+    /// </summary>
     internal readonly struct Selection
     {
         private readonly int[] selected;

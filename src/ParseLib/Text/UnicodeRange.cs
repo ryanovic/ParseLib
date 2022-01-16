@@ -6,6 +6,9 @@
     using System.Linq;
     using System.Text;
 
+    /// <summary>
+    /// Represents a range of Unicode characters.
+    /// </summary>
     public readonly struct UnicodeRange : IEquatable<UnicodeRange>
     {
         public const int SurrogateStart = 0xd800;

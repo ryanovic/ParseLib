@@ -3,6 +3,9 @@
     using System;
     using ParseLib.Text;
 
+    /// <summary>
+    /// Represents terminal symbol.
+    /// </summary>
     public sealed class Terminal : Symbol
     {
         public int Id { get; }
