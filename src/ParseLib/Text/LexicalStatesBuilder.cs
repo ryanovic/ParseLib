@@ -317,18 +317,21 @@
 
             for (int i = 0; i < charSets.Count; i++)
             {
-                for (int j = 0; j < indexesByCat.Length; j++)
+                if (!charSets[i].Categories.IsEmpty)
                 {
-                    var uc = 1 << j;
-
-                    if ((charSets[i].Categories.Set & uc) == uc)
+                    for (int j = 0; j < indexesByCat.Length; j++)
                     {
-                        if (indexesByCat[j] == null)
-                        {
-                            indexesByCat[j] = new List<int>();
-                        }
+                        var uc = 1 << j;
 
-                        indexesByCat[j].Add(i);
+                        if ((charSets[i].Categories.Set & uc) == uc)
+                        {
+                            if (indexesByCat[j] == null)
+                            {
+                                indexesByCat[j] = new List<int>();
+                            }
+
+                            indexesByCat[j].Add(i);
+                        }
                     }
                 }
             }
