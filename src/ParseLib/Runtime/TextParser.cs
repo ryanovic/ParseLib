@@ -38,7 +38,7 @@
                     Read(BufferPosition, Buffer, 0, offset + read, endOfSource: false);
                     offset = ShfitBuffer();
                     read = Reader.Read(Buffer, offset, Buffer.Length - offset);
-                    CollectLineBreaks(offset, read);
+                    CollectLinePositions(offset, read);
                 }
 
                 Read(BufferPosition, Buffer, 0, offset, endOfSource: true);
@@ -61,7 +61,7 @@
                     Read(BufferPosition, Buffer, 0, offset + read, endOfSource: false);
                     offset = ShfitBuffer();
                     read = await Reader.ReadAsync(Buffer, offset, Buffer.Length - offset);
-                    CollectLineBreaks(offset, read);
+                    CollectLinePositions(offset, read);
                 }
 
                 Read(BufferPosition, Buffer, 0, offset, endOfSource: true);
@@ -103,7 +103,7 @@
 
         protected override string GetLexeme() => GetLexeme(0, 0);
 
-        private void CollectLineBreaks(int offset, int read)
+        private void CollectLinePositions(int offset, int read)
         {
             if (read > 0)
             {
