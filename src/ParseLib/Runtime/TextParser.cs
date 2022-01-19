@@ -8,6 +8,8 @@
     {
         private const int DefaultBufferSize = 1024;
 
+        private readonly TextLineCounter lines;
+
         protected int BufferPosition { get; private set; }
         protected char[] Buffer { get; private set; }
         protected TextReader Reader { get; }
@@ -21,6 +23,7 @@
         {
             this.Buffer = new char[bufferSize];
             this.Reader = reader;
+            this.lines = new TextLineCounter();
         }
 
         public override void Parse()
@@ -28,12 +31,14 @@
             try
             {
                 int read = Reader.Read(Buffer, 0, Buffer.Length), offset = 0;
+                lines.Accept(0, Buffer, 0, read);
 
                 while (read > 0)
                 {
                     Read(BufferPosition, Buffer, 0, offset + read, endOfSource: false);
                     offset = ShfitBuffer();
                     read = Reader.Read(Buffer, offset, Buffer.Length - offset);
+                    CollectLineBreaks(offset, read);
                 }
 
                 Read(BufferPosition, Buffer, 0, offset, endOfSource: true);
@@ -49,12 +54,14 @@
             try
             {
                 int read = await Reader.ReadAsync(Buffer, 0, Buffer.Length), offset = 0;
+                lines.Accept(0, Buffer, 0, read);
 
                 while (read > 0)
                 {
                     Read(BufferPosition, Buffer, 0, offset + read, endOfSource: false);
                     offset = ShfitBuffer();
                     read = await Reader.ReadAsync(Buffer, offset, Buffer.Length - offset);
+                    CollectLineBreaks(offset, read);
                 }
 
                 Read(BufferPosition, Buffer, 0, offset, endOfSource: true);
@@ -77,6 +84,11 @@
         /// <remarks>The method is implemented by a sequential parser generator.</remarks>
         protected abstract bool Read(int bufferPosition, char[] buffer, int offset, int length, bool endOfSource);
 
+        protected override (int, int) GetLinePosition(int position)
+        {
+            return lines.GetLinePosition(position);
+        }
+
         protected string GetLexeme(int trimLeft, int trimRight)
         {
             var start = StartPosition + trimLeft;
@@ -90,6 +102,15 @@
         protected string GetLexeme(int trim) => GetLexeme(trim, trim);
 
         protected override string GetLexeme() => GetLexeme(0, 0);
+
+        private void CollectLineBreaks(int offset, int read)
+        {
+            if (read > 0)
+            {
+                lines.Discard(StartPosition);
+                lines.Accept(BufferPosition + offset, Buffer, offset, read);
+            }
+        }
 
         private int ShfitBuffer()
         {

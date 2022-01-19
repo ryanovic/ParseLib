@@ -55,24 +55,44 @@
             return GetTopValue();
         }
 
-        protected virtual void PopulateExceptionDetails(ParserException exception)
+        /// <summary>
+        /// Gets a row and column correspoinding to a specififed position in a source.
+        /// </summary>
+        protected virtual (int, int) GetLinePosition(int position)
         {
-            exception.Position = CurrentPosition;
+            return (0, position);
+        }
+
+        protected virtual void PopulateExceptionDetails(ParserException exception, int position)
+        {
+            (var col, var row) = GetLinePosition(position);
+            exception.Line = col;
+            exception.Position = row;
             exception.Lexeme = GetLexeme();
             exception.ParserState = GetParserState();
         }
 
         protected virtual ParserException CreateParserException(string message)
         {
+            return CreateParserException(message, CurrentPosition);
+        }
+
+        protected virtual ParserException CreateParserException(string message, int position)
+        {
             var error = new ParserException(message);
-            PopulateExceptionDetails(error);
+            PopulateExceptionDetails(error, position);
             return error;
         }
 
         protected virtual ParserException CreateParserException(Exception innerException)
         {
+            return CreateParserException(innerException, CurrentPosition);
+        }
+
+        protected virtual ParserException CreateParserException(Exception innerException, int position)
+        {
             var error = new ParserException(Errors.ExceptionOccurred(), innerException);
-            PopulateExceptionDetails(error);
+            PopulateExceptionDetails(error, position);
             return error;
         }
 

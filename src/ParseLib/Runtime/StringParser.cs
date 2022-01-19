@@ -7,6 +7,8 @@
     /// </summary>
     public abstract class StringParser : ParserBase
     {
+        private readonly StringLineCounter lines;
+
         protected string Content { get; }
 
         public StringParser(string content)
@@ -16,6 +18,7 @@
                 throw new ArgumentNullException(nameof(content));
             }
 
+            this.lines = new StringLineCounter();
             this.Content = content;
         }
 
@@ -23,6 +26,7 @@
         {
             try
             {
+                lines.Accept(Content);
                 Read(Content, 0, Content.Length);
             }
             catch (SystemException ex)
@@ -36,6 +40,11 @@
         /// </summary>
         /// <remarks>The method is implemented by a string parser generator.</remarks>
         protected abstract void Read(string content, int offset, int length);
+
+        protected override (int, int) GetLinePosition(int position)
+        {
+            return lines.GetLinePosition(position);
+        }
 
         protected string GetLexeme(int trimLeft, int trimRight)
         {

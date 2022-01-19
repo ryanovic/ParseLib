@@ -10,12 +10,17 @@
     public class ParserException : Exception
     {
         /// <summary>
-        /// Gets or sets a position in the source where the exception occured.
+        /// Gets or sets a line in a source where an exception occured.
+        /// </summary>
+        public int Line { get; set; }
+
+        /// <summary>
+        /// Gets or sets a position in the line where an exception occured.
         /// </summary>
         public int Position { get; set; }
 
         /// <summary>
-        /// Gets or sets a token value that was recognized before the exception occured.
+        /// Gets or sets a token value that was recognized before an exception occured.
         /// </summary>
         public string Lexeme { get; set; }
 
@@ -39,6 +44,7 @@
 
         protected ParserException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
+            Line = info.GetInt32(nameof(Line));
             Position = info.GetInt32(nameof(Position));
             Lexeme = info.GetString(nameof(Lexeme));
             ParserState = info.GetString(nameof(ParserState));
@@ -48,7 +54,16 @@
         {
             get
             {
-                var message = base.Message + Environment.NewLine + $"Position: {Position}";
+                var message = base.Message;
+
+                if (Line > 0)
+                {
+                    message += Environment.NewLine + $"Line: {Line}, Position: {Position}";
+                }
+                else
+                {
+                    message += Environment.NewLine + $"Position: {Position}";
+                }
 
                 if (!String.IsNullOrEmpty(Lexeme))
                 {
@@ -67,6 +82,7 @@
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
+            info.AddValue(nameof(Line), Line);
             info.AddValue(nameof(Position), Position);
             info.AddValue(nameof(Lexeme), Lexeme);
             info.AddValue(nameof(ParserState), ParserState);
