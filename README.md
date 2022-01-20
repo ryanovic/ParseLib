@@ -7,8 +7,8 @@
 ## Features
 
 - End-to-end solution with a built-in lexical analyzer.
-- Regular Expressions extended whith lookahead operations.
-- LALR(1) grammars with flexible conflicts resolution.
+- Fluent Regular Expressions building interface.
+- LALR(1) grammars with a flexible conflicts handling mechanism.
 - Unicode support.
 - In-memory dynamic type generation.
 - Async sequential parser implementation out-of-the-box.
