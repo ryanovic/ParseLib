@@ -32,16 +32,21 @@ grammar.CreateTerminal("expr:num", digit.OneOrMore());
 
 grammar.AddRule("expr:unary", "- expr")
     .ReduceOn("*", "/", "+", "-");
+
 grammar.AddRule("expr:add", "expr + expr")
     .ReduceOn("+", "-")
     .ShiftOn("*", "/");
+
 grammar.AddRule("expr:sub", "expr - expr")
     .ReduceOn("+", "-")
     .ShiftOn("*", "/");
+
 grammar.AddRule("expr:mul", "expr * expr")
     .ReduceOn("*", "/", "+", "-");
+
 grammar.AddRule("expr:div", "expr / expr")
     .ReduceOn("*", "/", "+", "-");
+
 grammar.AddRule("expr:group", "( expr )");
 ```
 
