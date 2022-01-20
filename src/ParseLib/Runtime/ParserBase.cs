@@ -65,9 +65,9 @@
 
         protected virtual void PopulateExceptionDetails(ParserException exception, int position)
         {
-            (var col, var row) = GetLinePosition(position);
-            exception.Line = col;
-            exception.Position = row;
+            (var row, var col) = GetLinePosition(position);
+            exception.Line = row;
+            exception.Position = col;
             exception.Lexeme = GetLexeme();
             exception.ParserState = GetParserState();
         }
