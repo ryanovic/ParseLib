@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ParseLib\ParseLib.csproj" />
+    <ProjectReference Include="..\..\src\Ry.ParseLib\Ry.ParseLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParseLib", "..\src\ParseLib\ParseLib.csproj", "{3427E58A-B018-4658-813A-3817F5928A9B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ry.ParseLib", "..\src\Ry.ParseLib\Ry.ParseLib.csproj", "{3427E58A-B018-4658-813A-3817F5928A9B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Html2Xml", "Html2Xml\Html2Xml.csproj", "{B839BC13-5FC1-41A6-9916-D9885AE7BD4B}"
 EndProject

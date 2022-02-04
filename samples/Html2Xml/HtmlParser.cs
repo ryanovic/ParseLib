@@ -6,7 +6,7 @@
     using System.Net;
     using System.Text;
     using System.Xml;
-    using ParseLib.Runtime;
+    using Ry.ParseLib.Runtime;
 
     // Custom parser base defines the logic necessary to reduce source to desired output format.
     public abstract class HtmlParser : TextParser
@@ -24,22 +24,22 @@
 
         // Complete token handler with no return doesn't put any value on the data stack.
         [CompleteToken("comment")]
-        protected void CreateComment() => AppendNode(Document.CreateComment(GetLexeme(trimLeft: 4, trimRight: 3)));
+        protected void CreateComment() => AppendNode(Document.CreateComment(GetValue(4, Length - 7)));
 
         [CompleteToken("text")]
-        protected void CreateText() => AppendNode(Document.CreateTextNode(WebUtility.HtmlDecode(GetLexeme())));
+        protected void CreateText() => AppendNode(Document.CreateTextNode(WebUtility.HtmlDecode(GetValue())));
 
         [CompleteToken("%script%")]
-        protected void CreateScript() => AppendNode(Document.CreateCDataSection(GetLexeme()));
+        protected void CreateScript() => AppendNode(Document.CreateCDataSection(GetValue()));
 
         [CompleteToken("<script")]
         [CompleteToken("<tag")]
-        protected void CreateElement() => current = Document.CreateElement(GetLexeme(trimLeft: 1, trimRight: 0));
+        protected void CreateElement() => current = Document.CreateElement(GetValue(1));
 
         [CompleteToken("</tag")]
         protected void VerifyElementTree()
         {
-            var name = GetLexeme(trimLeft: 2, trimRight: 0);
+            var name = GetValue(2);
 
             while (elements.Count > 0 && !elements.Peek().Name.Equals(name, StringComparison.OrdinalIgnoreCase))
             {
@@ -54,13 +54,13 @@
 
         // Put lexeme value on the data stack.
         [CompleteToken("attr-name")]
-        protected string CreateAttributeName() => GetLexeme();
+        protected string CreateAttributeName() => GetValue();
 
         [CompleteToken("attr-value-raw")]
-        protected string CreateAttributeRawValue() => GetLexeme();
+        protected string CreateAttributeRawValue() => GetValue();
 
         [CompleteToken("attr-value-str")]
-        protected string CreateAttributeStringValue() => GetLexeme(trim: 1);
+        protected string CreateAttributeStringValue() => GetValue(1);
 
         // Production hander. Reads attribute name from the stack.
         [Reduce("attr:single")]
@@ -111,7 +111,7 @@
         {
             if (name != "ws")
             {
-                Console.WriteLine($"token({name}): {GetLexeme()}");
+                Console.WriteLine($"token({name}): {GetValue()}");
             }
         }
 

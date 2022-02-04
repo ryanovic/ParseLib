@@ -7,8 +7,7 @@
     /// </summary>
     public abstract class StringParser : ParserBase
     {
-        private readonly StringLineCounter lines;
-
+        private readonly LineCounter lines;
         protected string Content { get; }
 
         public StringParser(string content)
@@ -18,7 +17,7 @@
                 throw new ArgumentNullException(nameof(content));
             }
 
-            this.lines = new StringLineCounter();
+            this.lines = new LineCounter();
             this.Content = content;
         }
 
@@ -26,8 +25,9 @@
         {
             try
             {
-                lines.Accept(Content);
-                Read(Content.AsSpan());
+                var span = Content.AsSpan();
+                lines.Accept(0, span);
+                Read(span);
             }
             catch (SystemException ex)
             {
@@ -46,18 +46,28 @@
             return lines.GetLinePosition(position);
         }
 
-        protected string GetLexeme(int trimLeft, int trimRight)
+        protected string GetValue(int start, int count)
         {
-            var start = StartPosition + trimLeft;
-            var end = CurrentPosition - trimRight;
+            if (start < 0) throw new ArgumentOutOfRangeException(nameof(start));
+            if (count < 0 || count > Length - start) throw new ArgumentOutOfRangeException(nameof(count));
 
-            return start < end
-                ? Content.Substring(start, end - start)
-                : null;
+            return count == 0 ? null : Content.Substring(StartPosition + start, count);
         }
 
-        protected string GetLexeme(int trim) => GetLexeme(trim, trim);
+        protected string GetValue(int start) => GetValue(start, Length - start);
 
-        protected override string GetLexeme() => GetLexeme(0, 0);
+        protected override string GetValue() => GetValue(0, Length);
+
+        protected ReadOnlySpan<char> GetSpan(int start, int count)
+        {
+            if (start < 0) throw new ArgumentOutOfRangeException(nameof(start));
+            if (count < 0 || count > Length - start) throw new ArgumentOutOfRangeException(nameof(count));
+
+            return count == 0 ? null : Content.AsSpan(StartPosition + start, count);
+        }
+
+        protected ReadOnlySpan<char> GetSpan(int start) => GetSpan(start, Length - start);
+
+        protected ReadOnlySpan<char> GetSpan() => GetSpan(0, Length);
     }
 }

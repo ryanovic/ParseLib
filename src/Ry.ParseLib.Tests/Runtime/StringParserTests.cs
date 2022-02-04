@@ -31,7 +31,7 @@ namespace Ry.ParseLib.Runtime
             }
 
             [CompleteToken("num")]
-            public int CompleteNumber() => Int32.Parse(GetLexeme());
+            public int CompleteNumber() => Int32.Parse(GetValue());
 
             [Reduce("expr:add")]
             public int Add(int x, int y) => x + y;

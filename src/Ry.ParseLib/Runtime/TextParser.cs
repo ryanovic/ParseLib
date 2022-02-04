@@ -1,18 +1,18 @@
 ﻿namespace Ry.ParseLib.Runtime
 {
     using System;
+    using System.Buffers;
     using System.IO;
     using System.Threading.Tasks;
 
     public abstract class TextParser : ParserBase
     {
-        private const int DefaultBufferSize = 1024;
+        private const int DefaultBufferSize = 4096;
 
-        private readonly TextLineCounter lines;
-
-        protected int BufferPosition { get; private set; }
-        protected char[] Buffer { get; private set; }
-        protected TextReader Reader { get; }
+        private readonly TextReader reader;
+        private readonly LineCounter lines;
+        private char[] buffer;
+        private int bufferPosition;
 
         public TextParser(TextReader reader)
             : this(reader, DefaultBufferSize)
@@ -21,27 +21,27 @@
 
         public TextParser(TextReader reader, int bufferSize)
         {
-            this.Buffer = new char[bufferSize];
-            this.Reader = reader;
-            this.lines = new TextLineCounter();
+            if (reader == null) throw new ArgumentNullException(nameof(reader));
+            if (bufferSize < 1) throw new ArgumentOutOfRangeException(nameof(bufferSize));
+
+            this.reader = reader;
+            this.buffer = new char[bufferSize];
+            this.lines = new LineCounter();
         }
 
         public override void Parse()
         {
             try
             {
-                int read = Reader.Read(Buffer, 0, Buffer.Length), offset = 0;
-                lines.Accept(0, Buffer, 0, read);
+                int read = reader.Read(buffer, 0, buffer.Length), offset = 0;
 
                 while (read > 0)
                 {
-                    Read(BufferPosition, Buffer.AsSpan(0, offset + read), isFinal: false);
-                    offset = ShfitBuffer();
-                    read = Reader.Read(Buffer, offset, Buffer.Length - offset);
-                    CollectLinePositions(offset, read);
+                    offset = ProcessBuffer(buffer.AsSpan(0, offset + read));
+                    read = reader.Read(buffer, offset, buffer.Length - offset);
                 }
 
-                Read(BufferPosition, Buffer.AsSpan(0, offset), isFinal: true);
+                Read(bufferPosition, buffer.AsSpan(0, offset), isFinal: true);
             }
             catch (SystemException ex)
             {
@@ -53,18 +53,15 @@
         {
             try
             {
-                int read = await Reader.ReadAsync(Buffer, 0, Buffer.Length), offset = 0;
-                lines.Accept(0, Buffer, 0, read);
+                int read = await reader.ReadAsync(buffer, 0, buffer.Length), offset = 0;
 
                 while (read > 0)
                 {
-                    Read(BufferPosition, Buffer.AsSpan(0, offset + read), isFinal: false);
-                    offset = ShfitBuffer();
-                    read = await Reader.ReadAsync(Buffer, offset, Buffer.Length - offset);
-                    CollectLinePositions(offset, read);
+                    offset = ProcessBuffer(buffer.AsSpan(0, offset + read));
+                    read = await reader.ReadAsync(buffer, offset, buffer.Length - offset);
                 }
 
-                Read(BufferPosition, Buffer.AsSpan(0, offset), isFinal: true);
+                Read(bufferPosition, buffer.AsSpan(0, offset), isFinal: true);
             }
             catch (SystemException ex)
             {
@@ -89,46 +86,55 @@
             return lines.GetLinePosition(position);
         }
 
-        protected string GetLexeme(int trimLeft, int trimRight)
+        protected string GetValue(int start, int count)
         {
-            var start = StartPosition + trimLeft;
-            var end = CurrentPosition - trimRight;
+            if (start < 0) throw new ArgumentOutOfRangeException(nameof(start));
+            if (count < 0 || count > Length - start) throw new ArgumentOutOfRangeException(nameof(count));
 
-            return start < end
-                ? new string(Buffer, start - BufferPosition, end - start)
-                : null;
+            return count == 0 ? null : new string(buffer, StartPosition - bufferPosition + start, count);
         }
 
-        protected string GetLexeme(int trim) => GetLexeme(trim, trim);
+        protected string GetValue(int start) => GetValue(start, Length - start);
 
-        protected override string GetLexeme() => GetLexeme(0, 0);
+        protected override string GetValue() => GetValue(0, Length);
 
-        private void CollectLinePositions(int offset, int read)
+        protected ReadOnlySpan<char> GetSpan(int start, int count)
         {
-            if (read > 0)
-            {
-                lines.Discard(StartPosition);
-                lines.Accept(BufferPosition + offset, Buffer, offset, read);
-            }
+            if (start < 0) throw new ArgumentOutOfRangeException(nameof(start));
+            if (count < 0 || count > Length - start) throw new ArgumentOutOfRangeException(nameof(count));
+
+            return count == 0 ? null : buffer.AsSpan(StartPosition - bufferPosition + start, count);
         }
 
-        private int ShfitBuffer()
+        protected ReadOnlySpan<char> GetSpan(int start) => GetSpan(start, Length - start);
+
+        protected ReadOnlySpan<char> GetSpan() => GetSpan(0, Length);
+
+        private int ProcessBuffer(ReadOnlySpan<char> span)
+        {
+            lines.Accept(bufferPosition, span);
+            Read(bufferPosition, span, isFinal: false);
+            ShfitBuffer();
+            lines.Discard(bufferPosition);
+            return CurrentPosition - StartPosition;
+        }
+
+        private void ShfitBuffer()
         {
             var currentLength = CurrentPosition - StartPosition;
 
-            if (2 * currentLength > Buffer.Length)
+            if (2 * currentLength > buffer.Length)
             {
-                var tmp = new char[Buffer.Length * 2];
-                Array.Copy(Buffer, StartPosition - BufferPosition, tmp, 0, currentLength);
-                Buffer = tmp;
+                var tmp = new char[buffer.Length * 2];
+                Array.Copy(buffer, StartPosition - bufferPosition, tmp, 0, currentLength);
+                buffer = tmp;
             }
             else if (currentLength > 0)
             {
-                Array.Copy(Buffer, StartPosition - BufferPosition, Buffer, 0, currentLength);
+                Array.Copy(buffer, StartPosition - bufferPosition, buffer, 0, currentLength);
             }
 
-            BufferPosition = StartPosition;
-            return currentLength;
+            bufferPosition = StartPosition;
         }
     }
 }

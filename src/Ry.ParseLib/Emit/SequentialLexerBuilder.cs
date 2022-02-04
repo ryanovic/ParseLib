@@ -95,7 +95,7 @@
             }
 
             index.Increment(IL);
-            state.Update(IL, next?.Id ?? -1);
+            state.Update(IL, next.Id);
             GoToState(next);
         }
 

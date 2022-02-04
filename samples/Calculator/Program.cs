@@ -1,7 +1,7 @@
 ﻿namespace Calculator
 {
     using System;
-    using ParseLib;
+    using Ry.ParseLib;
 
     public class Program
     {

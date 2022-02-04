@@ -158,7 +158,7 @@ namespace Ry.ParseLib.Emit
 
             protected abstract bool Read(int bufferPosition, ReadOnlySpan<char> buffer, bool isFinal);
 
-            protected override string GetLexeme()
+            protected override string GetValue()
             {
                 return CurrentPosition > StartPosition
                     ? new String(buffer, StartPosition, CurrentPosition - StartPosition)
@@ -182,7 +182,7 @@ namespace Ry.ParseLib.Emit
 
             protected abstract void Read(ReadOnlySpan<char> buffer);
 
-            protected override string GetLexeme()
+            protected override string GetValue()
             {
                 return CurrentPosition > StartPosition
                     ? content.Substring(StartPosition, CurrentPosition - StartPosition)
@@ -210,13 +210,13 @@ namespace Ry.ParseLib.Emit
             [CompleteToken("cmnt")]
             public void CompleteToken_cmnt()
             {
-                Assert.Equal("/*** comment ***/", GetLexeme());
+                Assert.Equal("/*** comment ***/", GetValue());
             }
 
             [CompleteToken("cmnt_lb")]
             public void CompleteToken_cmnt_lb()
             {
-                Assert.Equal("/*** linebreak \n comment ***/", GetLexeme());
+                Assert.Equal("/*** linebreak \n comment ***/", GetValue());
             }
 
             [CompleteToken("a")]
@@ -358,7 +358,7 @@ namespace Ry.ParseLib.Emit
 
             protected char GetChar()
             {
-                var lexem = GetLexeme();
+                var lexem = GetValue();
                 Assert.NotNull(lexem);
                 Assert.Equal(1, lexem.Length);
                 return lexem[0];

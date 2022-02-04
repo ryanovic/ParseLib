@@ -2,7 +2,7 @@
 {
     using System;
     using System.Reflection.Emit;
-    using ParseLib.Runtime;
+    using Ry.ParseLib.Runtime;
 
     public abstract class ExpressionParser : StringParser
     {
@@ -23,7 +23,7 @@
 
         // Gets num int value and puts it on the stack.
         [CompleteToken("num")]
-        protected int CompleteNumber() => Int32.Parse(GetLexeme());
+        protected int CompleteNumber() => Int32.Parse(GetValue());
 
         // Reduces 'expr -> a' production. 
         [Reduce("expr:a")]
@@ -58,7 +58,7 @@
         {
             if (name != "ws")
             {
-                Console.WriteLine($"token({name}): {GetLexeme()}");
+                Console.WriteLine($"token({name}): {GetValue()}");
             }
         }
 

@@ -11,22 +11,27 @@
     public abstract class ParserBase
     {
         /// <summary>
+        /// Gets a value indicating whether the parser is in a comlpeted state.
+        /// </summary>
+        /// <remarks>The property is implemented by a target parser generator.</remarks>
+        public abstract bool IsCompleted { get; }
+
+        /// <summary>
         /// Gets the position in the source where a pending token is started.
         /// </summary>
         /// <remarks>The property is implemented by a target parser generator.</remarks>
-        public abstract int StartPosition { get; }
+        protected abstract int StartPosition { get; }
 
         /// <summary>
         /// Gets the current position in the source.
         /// </summary>
         /// <remarks>The property is implemented by a target parser generator.</remarks>
-        public abstract int CurrentPosition { get; }
+        protected abstract int CurrentPosition { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the parser is in a comlpeted state.
+        /// Gets length of the current lexeme.
         /// </summary>
-        /// <remarks>The property is implemented by a target parser generator.</remarks>
-        public abstract bool IsCompleted { get; }
+        protected int Length => CurrentPosition - StartPosition;
 
         /// <summary>
         /// Reads the source and generates output according to the parser's configuration.
@@ -68,7 +73,7 @@
             (var row, var col) = GetLinePosition(position);
             exception.Line = row;
             exception.Position = col;
-            exception.Lexeme = GetLexeme();
+            exception.Lexeme = GetValue();
             exception.ParserState = GetParserState();
         }
 
@@ -111,6 +116,6 @@
         /// <summary>
         /// Gets a part of the source which represents a pending terminal value and corresponds to the <see cref="StartPosition"/> and <see cref="CurrentPosition"/> properties.
         /// </summary>
-        protected abstract string GetLexeme();
+        protected abstract string GetValue();
     }
 }

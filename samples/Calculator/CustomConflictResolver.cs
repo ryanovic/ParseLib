@@ -1,7 +1,7 @@
 ﻿namespace Calculator
 {
-    using ParseLib;
-    using ParseLib.LALR;
+    using Ry.ParseLib;
+    using Ry.ParseLib.LALR;
 
     public class CustomConflictResolver : ConflictResolver
     {
