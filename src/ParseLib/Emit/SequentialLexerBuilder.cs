@@ -74,14 +74,11 @@
         {
             if (current.IsLowSurrogate)
             {
-                highSurrogate.Load(IL);
+                source.LoadCharCode(index, highSurrogate);
             }
-
-            source.LoadCharCode(index);
-
-            if (current.IsLowSurrogate)
+            else
             {
-                IL.Emit(OpCodes.Call, ReflectionInfo.Char_ToUtf32);
+                source.LoadCharCode(index);
             }
         }
 

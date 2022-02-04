@@ -13,5 +13,6 @@
         void LoadEndPosition();
         void LoadLength();
         void LoadCharCode(Cell<int> index);
+        void LoadCharCode(Cell<int> index, Cell<int> highSurrogate);
     }
 }

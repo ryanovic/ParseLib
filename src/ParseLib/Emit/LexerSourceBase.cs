@@ -34,6 +34,13 @@
             IL.Emit(OpCodes.Ldind_U2);
         }
 
+        public virtual void LoadCharCode(Cell<int> index, Cell<int> highSurrotate)
+        {
+            highSurrotate.Load(IL);
+            LoadCharCode(index);
+            IL.Emit(OpCodes.Call, ReflectionInfo.Char_ToUtf32);
+        }
+
         public virtual void LoadLength()
         {
             LoadBuffer();
