@@ -16,45 +16,16 @@
             this.Item = CellGuard.Check(nameof(item), item, ReflectionInfo.LookaheadTuple);
         }
 
-        public void UpdatePosition(ILGenerator il, Cell<int> position)
+        public void LoadPosition(ILGenerator il)
         {
-            position.Update(il, () =>
-            {
-                Item.LoadAddress(il);
-                il.Emit(OpCodes.Ldfld, ReflectionInfo.LookaheadTuple_Item1);
-            });
+            Item.LoadAddress(il);
+            il.Emit(OpCodes.Ldfld, ReflectionInfo.LookaheadTuple_Item1);
         }
 
-        public void UpdateStateOnFailure(ILGenerator il, Cell<int> state)
+        public void LoadState(ILGenerator il, bool success)
         {
-            state.Update(il, () =>
-            {
-                Item.LoadAddress(il);
-                il.Emit(OpCodes.Ldfld, ReflectionInfo.LookaheadTuple_Item2);
-            });
-        }
-
-        public void UpdateStateOnSuccess(ILGenerator il, Cell<int> state)
-        {
-            state.Update(il, () =>
-            {
-                Item.LoadAddress(il);
-                il.Emit(OpCodes.Ldfld, ReflectionInfo.LookaheadTuple_Item3);
-            });
-        }
-
-        public void Restore(ILGenerator il, Cell<int> position, Cell<int> state, bool success)
-        {
-            UpdatePosition(il, position);
-
-            if (success)
-            {
-                UpdateStateOnSuccess(il, state);
-            }
-            else
-            {
-                UpdateStateOnFailure(il, state);
-            }
+            Item.LoadAddress(il);
+            il.Emit(OpCodes.Ldfld, success ? ReflectionInfo.LookaheadTuple_Item3 : ReflectionInfo.LookaheadTuple_Item2);
         }
     }
 }

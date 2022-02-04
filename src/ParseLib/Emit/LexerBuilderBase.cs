@@ -47,7 +47,7 @@
         /// <param name="states">The collection of lexical analyzer states.</param>
         /// <param name="charCode">The cell in which a current character code is stored.</param>
         /// <param name="categories">The cell in which a current character category is stored.</param>
-        public LexerBuilderBase(ILGenerator il, ILexicalStates states, Cell<int> charCode, Cell<int> categories)
+        public LexerBuilderBase(ILGenerator il, ILexicalStates states)
         {
             if (il == null) throw new ArgumentNullException(nameof(il));
             if (states == null) throw new ArgumentNullException(nameof(states));
@@ -60,8 +60,8 @@
             this.deadStateLabel = il.DefineLabel();
             this.stateLabels = il.DefineLabels(states.Count);
 
-            this.CharCode = charCode;
-            this.UnicodeCategories = categories;
+            this.CharCode = il.CreateCell<int>();
+            this.UnicodeCategories = il.CreateCell<int>();
         }
 
         /// <summary>
@@ -70,7 +70,7 @@
         public virtual void Build()
         {
             IL.MarkLabel(selectStateLabel_CheckLowerBound);
-            CheckLoweBound();
+            CheckLowerBound();
 
             IL.MarkLabel(selectStateLabel);
             LoadState();
@@ -122,9 +122,6 @@
             var label = IL.DefineLabel();
 
             CheckUpperBound(isValid: label);
-            CheckEndOfSource();
-
-            // The end of the source has been reached.
             HandleStateTransition(current, next: null);
 
             // Handle the next character.
@@ -312,17 +309,12 @@
         /// <summary>
         /// Ensures that the current position is equal to or greater than the buffer start.
         /// </summary>
-        protected abstract void CheckLoweBound();
+        protected abstract void CheckLowerBound();
 
         /// <summary>
         /// Jumps to the <paramref name="isValid"/> label if the poisition is within the bounds of the buffer.
         /// </summary>
         protected abstract void CheckUpperBound(Label isValid);
-
-        /// <summary>
-        /// Ensures that the end of the source is reached.
-        /// </summary>
-        protected abstract void CheckEndOfSource();
 
         /// <summary>
         /// Jumps to the <paramref name="onFalse"/> label if a lookahead sub-expression is currently being evaluated.

@@ -17,7 +17,7 @@
         {
             var target = DefineType(parent);
             var reducer = ParserReducer.CreateReducer(parent, grammar);
-            var builder = new StringParserBuilder(target, reducer, grammar, goal);
+            var builder = new ParserBuilder(target, reducer, grammar, goal);
             return builder.Build();
         }
 

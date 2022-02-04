@@ -7,7 +7,7 @@
     using ParseLib.Emit;
     using ParseLib.Text;
 
-    public delegate int RexEvaluator(string content, int offset, int length);
+    public delegate int RexEvaluator(ReadOnlySpan<char> content);
 
     public static class Rex
     {

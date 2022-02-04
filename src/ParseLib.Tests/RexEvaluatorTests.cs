@@ -7,30 +7,6 @@
 
     public class RexEvaluatorTests
     {
-        [Fact]
-        public void Throws_Exception_When_Content_Is_Null()
-        {
-            var eval = Rex.Compile(Rex.Text("test"));
-            Assert.Throws<ArgumentNullException>(() => eval(null, 0, "test".Length));
-        }
-
-        [Fact]
-        public void Throws_Exception_When_Office_Is_Out_Of_Range()
-        {
-            var eval = Rex.Compile(Rex.Text("test"));
-
-            Assert.Throws<ArgumentOutOfRangeException>(() => eval("test", -1, "test".Length));
-        }
-
-        [Fact]
-        public void Throws_Exception_When_Offset_And_Length_Is_Out_Of_Bound()
-        {
-            var eval = Rex.Compile(Rex.Text("test"));
-
-            Assert.Throws<ArgumentOutOfRangeException>(() => eval("test", 0, "test".Length + 1));
-            Assert.Throws<ArgumentOutOfRangeException>(() => eval("test", 1, "test".Length));
-        }
-
         [Theory]
         [InlineData("aaadaaa", 0)]
         [InlineData("aaaaaa", 1)]
@@ -39,7 +15,7 @@
         {
             var eval = Rex.Compile(Rex.Text("aaa"));
 
-            Assert.Equal("aaa".Length, eval(input, offset, input.Length - offset));
+            Assert.Equal("aaa".Length, eval(input.AsSpan(offset)));
         }
 
         [Theory]
@@ -50,7 +26,7 @@
         {
             var eval = Rex.Compile(Rex.Text("aaa"));
 
-            Assert.Equal(-1, eval(input, offset, input.Length - offset));
+            Assert.Equal(-1, eval(input.AsSpan(offset)));
         }
 
         [Theory]
@@ -60,7 +36,7 @@
         {
             var eval = Rex.Compile(Rex.Text(text));
 
-            Assert.Equal("word".Length, eval(input, 0, input.Length));
+            Assert.Equal("word".Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -70,7 +46,7 @@
         {
             var eval = Rex.Compile(Rex.Text(text));
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Fact]
@@ -78,7 +54,7 @@
         {
             var eval = Rex.Compile(Rex.Char('a'));
 
-            Assert.Equal(1, eval("a", 0, 1));
+            Assert.Equal(1, eval("a".AsSpan()));
         }
 
         [Fact]
@@ -86,7 +62,7 @@
         {
             var eval = Rex.Compile(Rex.Char('a'));
 
-            Assert.Equal(-1, eval("b", 0, 1));
+            Assert.Equal(-1, eval("b".AsSpan()));
         }
 
         [Theory]
@@ -97,7 +73,7 @@
         {
             var eval = Rex.Compile(Rex.Char(pattern));
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -108,7 +84,7 @@
         {
             var eval = Rex.Compile(Rex.Char(pattern));
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Fact]
@@ -116,7 +92,7 @@
         {
             var eval = Rex.Compile(Rex.Except('a'));
 
-            Assert.Equal(1, eval("b", 0, 1));
+            Assert.Equal(1, eval("b".AsSpan()));
         }
 
         [Fact]
@@ -124,7 +100,7 @@
         {
             var eval = Rex.Compile(Rex.Except('a'));
 
-            Assert.Equal(-1, eval("a", 0, 1));
+            Assert.Equal(-1, eval("a".AsSpan()));
         }
 
         [Theory]
@@ -135,7 +111,7 @@
         {
             var eval = Rex.Compile(Rex.Except(pattern));
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -146,7 +122,7 @@
         {
             var eval = Rex.Compile(Rex.Except(pattern));
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Fact]
@@ -154,7 +130,7 @@
         {
             var eval = Rex.Compile(Rex.Or('a', 'b'));
 
-            Assert.Equal(1, eval("b", 0, 1));
+            Assert.Equal(1, eval("b".AsSpan()));
         }
 
         [Fact]
@@ -162,7 +138,7 @@
         {
             var eval = Rex.Compile(Rex.Or("word1", "word2"));
 
-            Assert.Equal("word2".Length, eval("word2", 0, "word2".Length));
+            Assert.Equal("word2".Length, eval("word2".AsSpan()));
         }
 
         [Theory]
@@ -172,7 +148,7 @@
         {
             var eval = Rex.Compile(Rex.Or(Rex.Char(@"a-z"), Rex.Char(@"0-9")));
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -182,7 +158,7 @@
         {
             var eval = Rex.Compile(Rex.Or(Rex.Char(@"a-z"), Rex.Char(@"0-9")));
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Fact]
@@ -191,7 +167,7 @@
             var eval = Rex.Compile(Rex.Concat('a', 'b'));
             var input = "ab";
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Fact]
@@ -199,7 +175,7 @@
         {
             var eval = Rex.Compile(Rex.Concat("ab", "cd"));
 
-            Assert.Equal("abcd".Length, eval("abcd", 0, "abcd".Length));
+            Assert.Equal("abcd".Length, eval("abcd".AsSpan()));
         }
 
         [Theory]
@@ -208,7 +184,7 @@
         {
             var eval = Rex.Compile(Rex.Concat(Rex.Char(@"a-z"), Rex.Char(@"0-9")));
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -218,7 +194,7 @@
         {
             var eval = Rex.Compile(Rex.Concat(Rex.Char(@"a-z"), Rex.Char(@"0-9")));
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -229,7 +205,7 @@
         {
             var eval = Rex.Compile(Rex.Or('a', 'b').NoneOrMore().Then("abb"));
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -240,7 +216,7 @@
         {
             var eval = Rex.Compile(Rex.Or('a', 'b').NoneOrMore().Then("abb"), ignoreCase: true);
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Fact]
@@ -248,7 +224,7 @@
         {
             var eval = Rex.Compile(Rex.Or('a', 'b').NoneOrMore().Then("abb"), lazy: true);
 
-            Assert.Equal("abb".Length, eval("abbabb", 0, "abbabb".Length));
+            Assert.Equal("abb".Length, eval("abbabb".AsSpan()));
         }
 
         [Theory]
@@ -259,7 +235,7 @@
         {
             var eval = Rex.Compile(Rex.Char(@"\p{L|N}").OneOrMore());
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -269,7 +245,7 @@
         {
             var eval = Rex.Compile(Rex.Char('a').Optional().Then('b'));
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -279,7 +255,7 @@
         {
             var eval = Rex.Compile(Rex.IfNot("-->").Then(Rex.AnyChar).NoneOrMore());
 
-            Assert.Equal(input.Length - 3, eval(input, 0, input.Length));
+            Assert.Equal(input.Length - 3, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -291,7 +267,7 @@
             var expr = Rex.Text("test").NotFollowedBy(Rex.Text("st").FollowedBy("op"));
             var eval = Rex.Compile(expr);
 
-            Assert.Equal("test".Length, eval(input, 0, input.Length));
+            Assert.Equal("test".Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -303,7 +279,7 @@
             var expr = Rex.Text("test").NotFollowedBy(Rex.Text("st").FollowedBy("op"));
             var eval = Rex.Compile(expr);
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -316,7 +292,7 @@
                 .NotFollowedBy("y");
             var eval = Rex.Compile(expr);
 
-            Assert.Equal("test".Length, eval(input, 0, input.Length));
+            Assert.Equal("test".Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -329,7 +305,7 @@
                 .NotFollowedBy("y");
             var eval = Rex.Compile(expr);
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -339,7 +315,7 @@
             var expr = Rex.Char(CharSet.Parse(@"\p{L}-[\u{10000-10ffff}]"));
             var eval = Rex.Compile(expr);
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -349,7 +325,7 @@
             var expr = Rex.Char(CharSet.Parse(@"\p{L}-[\u{10000-10ffff}]"));
             var eval = Rex.Compile(expr);
 
-            Assert.Equal(-1, eval(input, 0, input.Length));
+            Assert.Equal(-1, eval(input.AsSpan()));
         }
 
         [Theory]
@@ -363,7 +339,7 @@
             var str = Rex.Char('\'').Then(str_char.NoneOrMore()).Then('\'');
             var eval = Rex.Compile(str);
 
-            Assert.Equal(input.Length, eval(input, 0, input.Length));
+            Assert.Equal(input.Length, eval(input.AsSpan()));
         }
     }
 }

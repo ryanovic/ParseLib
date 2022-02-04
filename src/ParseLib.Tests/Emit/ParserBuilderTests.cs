@@ -18,7 +18,7 @@ namespace ParseLib.Emit
         public Type CreateStringTestParser(ModuleBuilder module, IParserReducer reducer, ParserMetadata metadata)
         {
             var target = module.DefineType("String_Parser", TypeAttributes.Public, typeof(StringTestParser));
-            var builder = new StringParserBuilder(target, reducer, metadata);
+            var builder = new ParserBuilder(target, reducer, metadata);
             return builder.Build();
         }
 
@@ -153,10 +153,10 @@ namespace ParseLib.Emit
 
             public override void Parse()
             {
-                Read(0, buffer, 0, buffer.Length, true);
+                Read(0, buffer.AsSpan(0, buffer.Length), true);
             }
 
-            protected abstract bool Read(int bufferPosition, char[] buffer, int offset, int length, bool isEndOfSource);
+            protected abstract bool Read(int bufferPosition, ReadOnlySpan<char> buffer, bool isFinal);
 
             protected override string GetLexeme()
             {
@@ -177,10 +177,10 @@ namespace ParseLib.Emit
 
             public override void Parse()
             {
-                Read(content, 0, content.Length);
+                Read(content.AsSpan());
             }
 
-            protected abstract void Read(string content, int offset, int length);
+            protected abstract void Read(ReadOnlySpan<char> buffer);
 
             protected override string GetLexeme()
             {

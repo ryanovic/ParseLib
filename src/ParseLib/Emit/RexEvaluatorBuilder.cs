@@ -19,16 +19,16 @@
 
         public static RexEvaluator CreateDelegate(RexNode expr, bool lazy, bool ignoreCase)
         {
-            var method = new DynamicMethod("Read", typeof(int), new[] { typeof(string), typeof(int), typeof(int) });
+            var method = new DynamicMethod("Read", typeof(int), new[] { typeof(ReadOnlySpan<char>) });
             var il = method.GetILGenerator();
             var stateBuilder = new LexicalStatesBuilder(ignoreCase);
             var root = stateBuilder.CreateStates(0, expr, lazy);
-            var builder = new RexEvaluatorBuilder(il, stateBuilder, il.CreateCell<int>(), il.CreateCell<int>());
+            var builder = new RexEvaluatorBuilder(il, stateBuilder);
             builder.Build(root);
             return (RexEvaluator)method.CreateDelegate(typeof(RexEvaluator));
         }
 
-        public RexEvaluatorBuilder(ILGenerator il, LexicalStatesBuilder stateBuilder, Cell<int> charCode, Cell<int> categories) : base(il, stateBuilder, charCode, categories)
+        public RexEvaluatorBuilder(ILGenerator il, LexicalStatesBuilder stateBuilder) : base(il, stateBuilder)
         {
             this.position = il.CreateCell<int>();
             this.state = il.CreateCell<int>();
@@ -43,16 +43,6 @@
 
         public void Build(LexicalState root)
         {
-            var label = IL.DefineLabel();
-            ValidateContentArgument(label);
-
-            label = IL.MarkAndDefine(label);
-            ValidateOffsetArgument(label);
-
-            label = IL.MarkAndDefine(label);
-            ValidateLengthArgument(label);
-
-            IL.MarkLabel(label);
             state.Update(IL, root.Id);
             position.Update(IL, 0);
             acceptedPosition.Update(IL, -1);
@@ -66,7 +56,7 @@
             state.Load(IL);
         }
 
-        protected override void CheckLoweBound()
+        protected override void CheckLowerBound()
         {
         }
 
@@ -74,11 +64,7 @@
         {
             position.Load(IL);
             LoadLength();
-            IL.Emit(OpCodes.Blt, isValid);
-        }
-
-        protected override void CheckEndOfSource()
-        {
+            IL.Emit(OpCodes.Blt_S, isValid);
         }
 
         protected override void MoveNext(LexicalState next)
@@ -94,31 +80,14 @@
                 CharCode.Load(IL);
             }
 
-            LoadIndex();
-            IL.Emit(OpCodes.Callvirt, ReflectionInfo.String_Get);
+            IL.Emit(OpCodes.Ldarga_S, 0);
+            position.Load(IL);
+            IL.Emit(OpCodes.Call, ReflectionInfo.ReadOnlyCharSpan_Item_Get);
+            IL.Emit(OpCodes.Ldind_U2);
 
             if (state.IsLowSurrogate)
             {
                 IL.Emit(OpCodes.Call, ReflectionInfo.Char_ToUtf32);
-            }
-        }
-
-        protected override void LoadUnicodeCategory(LexicalState state)
-        {
-            if (ReflectionInfo.Char_GetCategoryByInt32 != null)
-            {
-                CharCode.Load(IL);
-                IL.Emit(OpCodes.Call, ReflectionInfo.Char_GetCategoryByInt32);
-            }
-            else if (state.IsLowSurrogate)
-            {
-                IL.Decrement(() => LoadIndex());
-                IL.Emit(OpCodes.Call, ReflectionInfo.Char_GetCategoryByStr);
-            }
-            else
-            {
-                CharCode.Load(IL);
-                IL.Emit(OpCodes.Call, ReflectionInfo.Char_GetCategoryByChar);
             }
         }
 
@@ -130,12 +99,13 @@
         protected override void PopLookaheadState(bool success)
         {
             lhStack.Pop(IL, lhItem);
-            lhItem.Restore(IL, position, state, success);
+            position.Update(IL, () => lhItem.LoadPosition(IL));
+            state.Update(IL, () => lhItem.LoadState(IL, success));
         }
 
         protected override void PushLookaheadState(LexicalState state)
         {
-            lhStack.Push(IL, position, state);
+            lhStack.Push(IL, state, position);
         }
 
         protected override void CheckHasAcceptedToken(Label onFalse)
@@ -168,53 +138,11 @@
             IL.Emit(OpCodes.Ret);
         }
 
-        private void LoadIndex()
-        {
-            LoadContent();
-            LoadOffset();
-            position.Load(IL);
-            IL.Emit(OpCodes.Add);
-        }
-
-        private void LoadContent()
-        {
-            IL.Emit(OpCodes.Ldarg_0);
-        }
-
-        private void LoadOffset()
-        {
-            IL.Emit(OpCodes.Ldarg_1);
-        }
 
         private void LoadLength()
         {
-            IL.Emit(OpCodes.Ldarg_2);
-        }
-
-        private void ValidateContentArgument(Label valid)
-        {
-            LoadContent();
-            IL.Emit(OpCodes.Brtrue, valid);
-            IL.ThrowArgumentNullException("content");
-        }
-
-        private void ValidateOffsetArgument(Label valid)
-        {
-            LoadOffset();
-            IL.Emit(OpCodes.Ldc_I4_0);
-            IL.Emit(OpCodes.Bge, valid);
-            IL.ThrowArgumentOutOfRangeException("offset", Errors.OffsetOutOfRange());
-        }
-
-        private void ValidateLengthArgument(Label valid)
-        {
-            LoadOffset();
-            LoadLength();
-            IL.Emit(OpCodes.Add);
-            LoadContent();
-            IL.Emit(OpCodes.Callvirt, ReflectionInfo.String_Length_Get);
-            IL.Emit(OpCodes.Ble, valid);
-            IL.ThrowArgumentOutOfRangeException("length", Errors.LengthOutOfRange());
+            IL.Emit(OpCodes.Ldarga_S, 0);
+            IL.Emit(OpCodes.Call, ReflectionInfo.ReadOnlyCharSpan_Length_Get);
         }
     }
 }

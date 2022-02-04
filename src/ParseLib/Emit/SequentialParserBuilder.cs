@@ -6,9 +6,9 @@
     using System.Reflection.Emit;
 
     /// <summary>
-    /// Implements <see cref="ParserBuilder"/> class for a <see cref="SequentialParserSource">sequential</see> input source.
+    /// Implements <see cref="ParserBuilderBase"/> class for a <see cref="SequentialLexerSource">sequential</see> input source.
     /// </summary>
-    public sealed class SequentialParserBuilder : ParserBuilder
+    public sealed class SequentialParserBuilder : ParserBuilderBase
     {
         private readonly Cell<int> acceptedPosition;
         private readonly Cell<int> acceptedTokenId;
@@ -45,19 +45,14 @@
             var method = Target.DefineMethod("Read",
                 MethodAttributes.Family | MethodAttributes.Virtual,
                 typeof(bool),
-                new[] { typeof(int), typeof(char[]), typeof(int), typeof(int), typeof(bool) });
+                new[] { typeof(int), typeof(ReadOnlySpan<char>), typeof(bool) });
 
             var il = method.GetILGenerator();
-            var charCode = il.CreateCell<int>();
-            var categories = il.CreateCell<int>();
 
-            var source = CreateSource();
-            var lexer = new LexerBuilder(
-                il, LexicalStates, source, this, lhStack, charCode, categories, LexerState, CurrentPosition, acceptedPosition, acceptedTokenId, highSurrogate);
+            var lexer = new SequentialLexerBuilder(
+                il, LexicalStates, this, lhStack, LexerState, CurrentPosition, acceptedPosition, acceptedTokenId, highSurrogate);
 
             lexer.Build();
         }
-
-        private ILexerSource CreateSource() => new SequentialParserSource();
     }
 }

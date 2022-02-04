@@ -158,17 +158,17 @@
 
         public abstract class StringTestLexer : TestLexer
         {
-            public abstract void Read(string content, int offset, int length);
+            public abstract void Read(ReadOnlySpan<char> buffer);
 
             public override void Parse(string content)
             {
-                Read(content, 0, content.Length);
+                Read(content.AsSpan(0, content.Length));
             }
         }
 
         public abstract class SequentialTestLexer : TestLexer
         {
-            public abstract bool Read(int bufferPosition, char[] buffer, int offset, int length, bool endOfSource);
+            public abstract bool Read(int bufferPosition, ReadOnlySpan<char> buffer, bool isFinal);
 
             public override void Parse(string content)
             {
@@ -179,7 +179,7 @@
                 {
                     var eos = bufferPosition == content.Length;
 
-                    if (Read(bufferPosition, buffer, bufferPosition, eos ? 0 : 1, eos))
+                    if (Read(bufferPosition, buffer.AsSpan(bufferPosition, eos ? 0 : 1), eos))
                     {
                         bufferPosition++;
                     }
@@ -220,24 +220,13 @@
                 var method = target.DefineMethod("Read",
                     MethodAttributes.Public | MethodAttributes.Virtual,
                     typeof(void),
-                    new[] { typeof(string), typeof(int), typeof(int) });
+                    new[] { typeof(ReadOnlySpan<char>) });
 
                 var il = method.GetILGenerator();
-                var charCode = il.CreateCell<int>();
-                var categories = il.CreateCell<int>();
-
-                var lhStack = lexStateBuilder.HasLookaheads
-                    ? il.CreateLookaheadStack()
-                    : null;
-
-                var acceptedPosition = il.CreateCell<int>();
-                var acceptedId = il.CreateCell<int>();
-
-                acceptedId.Update(il, -1);
-                lhStack?.Initialize(il);
 
                 var lexer = new LexerBuilder(
-                    il, lexStateBuilder, new StringParserSource(), builder, lhStack, charCode, categories, state, position, acceptedPosition, acceptedId, charCode);
+                    il, lexStateBuilder, builder, state, position);
+
                 lexer.Build();
 
                 return target.CreateType();
@@ -257,30 +246,27 @@
                     ? target.CreateLookaheadStack("lhStack")
                     : null;
 
-                BuildConstructor(target, il =>
+                BuildConstructor(target, ctor_il =>
                 {
-                    state.Update(il, lexState.Id);
-                    position.Update(il, 0);
-                    acceptedId.Update(il, -1);
-                    lhStack?.Initialize(il);
+                    state.Update(ctor_il, lexState.Id);
+                    position.Update(ctor_il, 0);
+                    acceptedId.Update(ctor_il, -1);
+                    lhStack?.Initialize(ctor_il);
                 });
 
                 BuildPositionProperty(target, position);
 
                 var builder = new TestLexerBuilder(lexState, state);
-                var source = new SequentialParserSource();
 
                 var method = target.DefineMethod("Read",
                     MethodAttributes.Public | MethodAttributes.Virtual,
                     typeof(bool),
-                    new[] { typeof(int), typeof(char[]), typeof(int), typeof(int), typeof(bool) });
+                    new[] { typeof(int), typeof(ReadOnlySpan<char>), typeof(bool) });
 
-                var mthd_il = method.GetILGenerator();
-                var charCode = mthd_il.CreateCell<int>();
-                var categories = mthd_il.CreateCell<int>();
+                var il = method.GetILGenerator();
 
-                var lexer = new LexerBuilder(
-                    mthd_il, lexStateBuilder, source, builder, lhStack, charCode, categories, state, position, acceptedPosition, acceptedId, highSurrogate);
+                var lexer = new SequentialLexerBuilder(
+                    il, lexStateBuilder, builder, lhStack, state, position, acceptedPosition, acceptedId, highSurrogate);
                 lexer.Build();
 
                 return target.CreateType();

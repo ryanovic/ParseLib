@@ -38,10 +38,15 @@
             });
         }
 
-        public void Push(ILGenerator il, Cell<int> position, LexicalState state)
+        public void Push(ILGenerator il, LexicalState state, Cell<int> position)
+        {
+            Push(il, state, () => position.Load(il));
+        }
+
+        public void Push(ILGenerator il, LexicalState state, Action loadPosition)
         {
             Stack.Load(il);
-            position.Load(il);
+            loadPosition();
             LoadState(il, state.OnFalse);
             LoadState(il, state.OnTrue);
             il.Emit(OpCodes.Newobj, ReflectionInfo.LookaheadTuple_Ctor);

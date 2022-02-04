@@ -35,13 +35,13 @@
 
                 while (read > 0)
                 {
-                    Read(BufferPosition, Buffer, 0, offset + read, endOfSource: false);
+                    Read(BufferPosition, Buffer.AsSpan(0, offset + read), isFinal: false);
                     offset = ShfitBuffer();
                     read = Reader.Read(Buffer, offset, Buffer.Length - offset);
                     CollectLinePositions(offset, read);
                 }
 
-                Read(BufferPosition, Buffer, 0, offset, endOfSource: true);
+                Read(BufferPosition, Buffer.AsSpan(0, offset), isFinal: true);
             }
             catch (SystemException ex)
             {
@@ -58,13 +58,13 @@
 
                 while (read > 0)
                 {
-                    Read(BufferPosition, Buffer, 0, offset + read, endOfSource: false);
+                    Read(BufferPosition, Buffer.AsSpan(0, offset + read), isFinal: false);
                     offset = ShfitBuffer();
                     read = await Reader.ReadAsync(Buffer, offset, Buffer.Length - offset);
                     CollectLinePositions(offset, read);
                 }
 
-                Read(BufferPosition, Buffer, 0, offset, endOfSource: true);
+                Read(BufferPosition, Buffer.AsSpan(0, offset), isFinal: true);
             }
             catch (SystemException ex)
             {
@@ -79,10 +79,10 @@
         /// <param name="buffer">The data buffer containing a sequence of pending character codes.</param>
         /// <param name="offset">The buffer start index.</param>
         /// <param name="length">The buffer length.</param>
-        /// <param name="endOfSource">The value indicating whether the source is completed indicating the buffer is a last data chunk in a row.</param>
+        /// <param name="isFinal">The value indicating whether the source is completed indicating the buffer is a last data chunk in a row.</param>
         /// <returns><c>true</c> if the buffer is entirelly read or <c>false</c> if a current position is restored before the buffer start.</returns>
         /// <remarks>The method is implemented by a sequential parser generator.</remarks>
-        protected abstract bool Read(int bufferPosition, char[] buffer, int offset, int length, bool endOfSource);
+        protected abstract bool Read(int bufferPosition, ReadOnlySpan<char> buffer, bool isFinal);
 
         protected override (int, int) GetLinePosition(int position)
         {

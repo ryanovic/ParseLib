@@ -33,6 +33,14 @@
 
         public static MethodInfo LookaheadStack_Push => LookaheadStack.GetMethod("Push", new[] { LookaheadTuple });
 
+        public static MethodInfo CharSpan_Length_Get => typeof(Span<char>).GetMethod("get_Length");
+
+        public static MethodInfo CharSpan_Item_Get => typeof(Span<char>).GetMethod("get_Item");
+
+        public static MethodInfo ReadOnlyCharSpan_Length_Get => typeof(ReadOnlySpan<char>).GetMethod("get_Length");
+
+        public static MethodInfo ReadOnlyCharSpan_Item_Get => typeof(ReadOnlySpan<char>).GetMethod("get_Item");
+
         public static PropertyInfo String_Length => typeof(string).GetProperty("Length");
 
         public static MethodInfo String_Length_Get => String_Length.GetGetMethod();

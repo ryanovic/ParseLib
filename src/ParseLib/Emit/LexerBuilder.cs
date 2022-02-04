@@ -8,64 +8,66 @@
     /// <summary>
     /// Implements a lexical analyzer that accepts <see cref="ILexerSource"/> as a source and <see cref="ILexerTarget"/> as a target interfaces.
     /// </summary>
-    public sealed class LexerBuilder : LexerBuilderBase
+    public sealed class LexerBuilder : LexerBuilderBase, ILexerSource
     {
-        public ILexerSource Source { get; }
-        public ILexerTarget Target { get; }
-
+        private readonly ILexerTarget target;
+        private readonly LookaheadStack lhStack;
+        private readonly LookaheadItem lhItem;
         private readonly Cell<int> state;
         private readonly Cell<int> position;
-        private readonly Cell<int> highSurrogate;
         private readonly Cell<int> acceptedPosition;
         private readonly Cell<int> acceptedTokenId;
 
-        private readonly LookaheadStack lookaheadStack;
-        private readonly LookaheadItem lookaheadItem;
-
-        /// <summary>
-        /// Create an instance of the <see cref="LexerBuilder"/> class.
-        /// </summary>
-        /// <param name="il">The IL geneartor.</param>
-        /// <param name="states">The collection of lexical analyzer states.</param>        
-        /// <param name="source">The object that provides interaction with the source.</param>
-        /// <param name="target">The target reducer responsible for processing recognized tokens.</param>
-        /// <param name="lhStack">The storage that holds lookahead return states.</param>
-        /// <param name="charCode">The cell in which a current character code is stored.</param>
-        /// <param name="categories">The cell in which a current character category is stored.</param>
-        /// <param name="state">The cell in which a current lexer state is stored.</param>
-        /// <param name="position">The cell in which a current position is stored.</param>
-        /// <param name="acceptedPosition">The cell in which the most recent accepted token position is stored.</param>
-        /// <param name="acceptedTokenId">The cell in which the most recent accepted token ID is stored.</param>
-        /// <param name="highSurrogate">The cell in which the high surroage is stored.</param>
         public LexerBuilder(
             ILGenerator il,
             ILexicalStates states,
-            ILexerSource source,
             ILexerTarget target,
-            LookaheadStack lhStack,
-            Cell<int> charCode,
-            Cell<int> categories,
             Cell<int> state,
-            Cell<int> position,
-            Cell<int> acceptedPosition,
-            Cell<int> acceptedTokenId,
-            Cell<int> highSurrogate)
-            : base(il, states, charCode, categories)
+            Cell<int> position)
+            : base(il, states)
         {
-            this.Source = source ?? throw new ArgumentNullException(nameof(source));
-            this.Target = target ?? throw new ArgumentNullException(nameof(target));
-
+            this.target = target ?? throw new ArgumentNullException(nameof(target));
             this.state = state;
             this.position = position;
-            this.acceptedPosition = acceptedPosition;
-            this.acceptedTokenId = acceptedTokenId;
-            this.highSurrogate = highSurrogate;
+            this.acceptedPosition = il.CreateCell<int>();
+            this.acceptedTokenId = il.CreateCell<int>();
 
             if (HasLookaheads)
             {
-                this.lookaheadStack = lhStack ?? throw new ArgumentNullException(nameof(lhStack));
-                this.lookaheadItem = il.CreateLookaheadItem();
+                this.lhStack = il.CreateLookaheadStack();
+                this.lhItem = il.CreateLookaheadItem();
             }
+        }
+
+        public void LoadStartPosition()
+        {
+            IL.Emit(OpCodes.Ldc_I4_0);
+        }
+
+        public void LoadEndPosition()
+        {
+            LoadLength();
+        }
+
+        public void LoadCharCode(Cell<int> index)
+        {
+            IL.Emit(OpCodes.Ldarga_S, 1);
+            index.Load(IL);
+            IL.Emit(OpCodes.Call, ReflectionInfo.CharSpan_Item_Get);
+            IL.Emit(OpCodes.Ldind_U2);
+        }
+
+        public void LoadLength()
+        {
+            IL.Emit(OpCodes.Ldarga_S, 1);
+            IL.Emit(OpCodes.Call, ReflectionInfo.CharSpan_Length_Get);
+        }
+
+        public override void Build()
+        {
+            acceptedTokenId.Update(IL, -1);
+            lhStack?.Initialize(IL);
+            base.Build();
         }
 
         protected override void LoadState()
@@ -73,48 +75,21 @@
             state.Load(IL);
         }
 
-        protected override void CheckLoweBound()
+        protected override void CheckLowerBound()
         {
-            if (Source.IsSequental)
-            {
-                var label = IL.DefineLabel();
-
-                Source.CheckLowerBound(IL, position, label);
-                IL.Emit(OpCodes.Ldc_I4_0);
-                IL.Emit(OpCodes.Ret);
-
-                IL.MarkLabel(label);
-            }
         }
 
         protected override void CheckUpperBound(Label isValid)
         {
-            Source.CheckUpperBound(IL, position, isValid);
-        }
-
-        protected override void CheckEndOfSource()
-        {
-            if (Source.IsSequental)
-            {
-                var label = IL.DefineLabel();
-
-                Source.CheckIsLastChunk(IL, isLast: label);
-                IL.Emit(OpCodes.Ldc_I4_1);
-                IL.Emit(OpCodes.Ret);
-
-                IL.MarkLabel(label);
-            }
+            position.Load(IL);
+            LoadLength();
+            IL.Emit(OpCodes.Blt_S, isValid);
         }
 
         protected override void MoveNext(LexicalState next)
         {
-            if (next.IsLowSurrogate)
-            {
-                UpdateHighSurrogate();
-            }
-
-            IncrementPosition();
-            UpdateState(next);
+            position.Increment(IL);
+            state.Update(IL, next?.Id ?? -1);
             GoToState(next);
         }
 
@@ -122,28 +97,32 @@
         {
             if (current.IsLowSurrogate)
             {
-                Source.LoadCharCode(IL, position, highSurrogate);
+                CharCode.Load(IL);
             }
-            else
+
+            LoadCharCode(position);
+
+            if (current.IsLowSurrogate)
             {
-                Source.LoadCharCode(IL, position);
+                IL.Emit(OpCodes.Call, ReflectionInfo.Char_ToUtf32);
             }
         }
 
         protected override void CheckIsLookahead(Label onFalse)
         {
-            lookaheadStack.CheckIsLookahead(IL, onFalse);
+            lhStack.CheckIsLookahead(IL, onFalse);
         }
 
         protected override void PopLookaheadState(bool success)
         {
-            lookaheadStack.Pop(IL, lookaheadItem);
-            lookaheadItem.Restore(IL, position, state, success);
+            lhStack.Pop(IL, lhItem);
+            position.Update(IL, () => lhItem.LoadPosition(IL));
+            state.Update(IL, () => lhItem.LoadState(IL, success));
         }
 
         protected override void PushLookaheadState(LexicalState current)
         {
-            lookaheadStack.Push(IL, position, current);
+            lhStack.Push(IL, current, position);
         }
 
         protected override void CheckHasAcceptedToken(Label onFalse)
@@ -162,43 +141,22 @@
         protected override void CompleteLastAcceptedToken()
         {
             position.Update(IL, acceptedPosition);
-            Target.CompleteToken(IL, acceptedTokenId);
+            target.CompleteToken(IL, acceptedTokenId);
             acceptedTokenId.Update(IL, -1);
-            GoToSelectState(checkLowerBound: true);
+            GoToSelectState(checkLowerBound: false);
         }
 
         protected override void CompleteToken(int tokenId)
         {
-            Target.CompleteToken(IL, tokenId);
+            target.CompleteToken(IL, tokenId);
             acceptedTokenId.Update(IL, -1);
             GoToSelectState(checkLowerBound: false);
         }
 
         protected override void CompleteSource()
         {
-            Target.CompleteSource(IL, Source);
-
-            if (Source.IsSequental)
-            {
-                IL.LoadTrue();
-            }
-
+            target.CompleteSource(IL, this);
             IL.Emit(OpCodes.Ret);
-        }
-
-        private void IncrementPosition()
-        {
-            position.Increment(IL);
-        }
-
-        private void UpdateHighSurrogate()
-        {
-            highSurrogate.Update(IL, CharCode);
-        }
-
-        private void UpdateState(LexicalState next)
-        {
-            state.Update(IL, next?.Id ?? -1);
         }
     }
 }

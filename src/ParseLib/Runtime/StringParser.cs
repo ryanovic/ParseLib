@@ -27,7 +27,7 @@
             try
             {
                 lines.Accept(Content);
-                Read(Content, 0, Content.Length);
+                Read(Content.AsSpan());
             }
             catch (SystemException ex)
             {
@@ -39,7 +39,7 @@
         /// Processes a defined string value.
         /// </summary>
         /// <remarks>The method is implemented by a string parser generator.</remarks>
-        protected abstract void Read(string content, int offset, int length);
+        protected abstract void Read(ReadOnlySpan<char> buffer);
 
         protected override (int, int) GetLinePosition(int position)
         {
