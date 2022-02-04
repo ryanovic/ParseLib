@@ -5,8 +5,9 @@
     using System.Reflection.Emit;
     using ParseLib.Text;
 
-    public sealed class SequentialLexerBuilder : LexerBuilderBase, ILexerSource
+    public sealed class SequentialLexerBuilder : LexerBuilderBase
     {
+        private readonly SequentialLexerSource source;
         private readonly ILexerTarget target;
         private readonly LookaheadStack lhStack;
         private readonly LookaheadItem lhItem;
@@ -29,6 +30,7 @@
             Cell<int> highSurrogate)
             : base(il, states)
         {
+            this.source = new SequentialLexerSource(il);
             this.target = target ?? throw new ArgumentNullException(nameof(target));
             this.state = state;
             this.position = position;
@@ -43,37 +45,6 @@
                 this.lhStack = lhStack ?? throw new ArgumentNullException(nameof(lhStack));
                 this.lhItem = il.CreateLookaheadItem();
             }
-        }
-
-        public void LoadStartPosition()
-        {
-            IL.Emit(OpCodes.Ldarg_1);
-        }
-
-        public void LoadEndPosition()
-        {
-            LoadStartPosition();
-            LoadLength();
-            IL.Emit(OpCodes.Add);
-        }
-
-        public void LoadCharCode(Cell<int> bufferIndex)
-        {
-            IL.Emit(OpCodes.Ldarga_S, 2);
-            bufferIndex.Load(IL);
-            IL.Emit(OpCodes.Call, ReflectionInfo.CharSpan_Item_Get);
-            IL.Emit(OpCodes.Ldind_U2);
-        }
-
-        public void LoadLength()
-        {
-            IL.Emit(OpCodes.Ldarga_S, 2);
-            IL.Emit(OpCodes.Call, ReflectionInfo.CharSpan_Length_Get);
-        }
-
-        public void LoadIsFinal()
-        {
-            IL.Emit(OpCodes.Ldarg_3);
         }
 
         protected override void CheckLowerBound()
@@ -94,7 +65,7 @@
         protected override void CheckUpperBound(Label isValid)
         {
             index.Load(IL);
-            LoadLength();
+            source.LoadLength();
             IL.Emit(OpCodes.Blt_S, isValid);
             CompleteChunk();
         }
@@ -106,7 +77,7 @@
                 highSurrogate.Load(IL);
             }
 
-            LoadCharCode(index);
+            source.LoadCharCode(index);
 
             if (current.IsLowSurrogate)
             {
@@ -180,7 +151,7 @@
         protected override void CompleteSource()
         {
             position.Update(IL, LoadPosition);
-            target.CompleteSource(IL, this);
+            target.CompleteSource(IL, source);
             IL.LoadTrue();
             IL.Emit(OpCodes.Ret);
         }
@@ -189,7 +160,7 @@
         {
             var label = IL.DefineLabel();
 
-            LoadIsFinal();
+            source.LoadIsFinal();
             IL.Emit(OpCodes.Brtrue_S, label);
 
             position.Update(IL, LoadPosition);
@@ -202,13 +173,13 @@
         private void LoadIndex()
         {
             position.Load(IL);
-            LoadStartPosition();
+            source.LoadStartPosition();
             IL.Emit(OpCodes.Sub);
         }
 
         private void LoadPosition()
         {
-            LoadStartPosition();
+            source.LoadStartPosition();
             index.Load(IL);
             IL.Emit(OpCodes.Add);
         }

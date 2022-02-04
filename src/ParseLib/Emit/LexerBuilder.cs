@@ -8,8 +8,9 @@
     /// <summary>
     /// Implements a lexical analyzer that accepts <see cref="ILexerSource"/> as a source and <see cref="ILexerTarget"/> as a target interfaces.
     /// </summary>
-    public sealed class LexerBuilder : LexerBuilderBase, ILexerSource
+    public sealed class LexerBuilder : LexerBuilderBase
     {
+        private readonly LexerSource source;
         private readonly ILexerTarget target;
         private readonly LookaheadStack lhStack;
         private readonly LookaheadItem lhItem;
@@ -26,6 +27,7 @@
             Cell<int> position)
             : base(il, states)
         {
+            this.source = new LexerSource(il);
             this.target = target ?? throw new ArgumentNullException(nameof(target));
             this.state = state;
             this.position = position;
@@ -39,42 +41,11 @@
             }
         }
 
-        public void LoadStartPosition()
-        {
-            IL.Emit(OpCodes.Ldc_I4_0);
-        }
-
-        public void LoadEndPosition()
-        {
-            LoadLength();
-        }
-
-        public void LoadCharCode(Cell<int> index)
-        {
-            IL.Emit(OpCodes.Ldarga_S, 1);
-            index.Load(IL);
-#if NET6_0
-            IL.Emit(OpCodes.Call, ReflectionInfo.ReadOnlyCharSpan_Item_Get);
-#else
-            // https://github.com/dotnet/runtime/issues/64799
-            // I can't use the ReadOnlyCharSpan_Item_Get metadata for frameworks prior to .NET 6.
-            // Luckily, this trick with CharSpan_Item_Get produces comparable IL,
-            // so I still can keep the same interface for all versions.
-            IL.Emit(OpCodes.Call, ReflectionInfo.CharSpan_Item_Get);
-#endif
-            IL.Emit(OpCodes.Ldind_U2);
-        }
-
-        public void LoadLength()
-        {
-            IL.Emit(OpCodes.Ldarga_S, 1);
-            IL.Emit(OpCodes.Call, ReflectionInfo.ReadOnlyCharSpan_Length_Get);
-        }
-
         public override void Build()
         {
             acceptedTokenId.Update(IL, -1);
             lhStack?.Initialize(IL);
+
             base.Build();
         }
 
@@ -90,7 +61,7 @@
         protected override void CheckUpperBound(Label isValid)
         {
             position.Load(IL);
-            LoadLength();
+            source.LoadLength();
             IL.Emit(OpCodes.Blt_S, isValid);
         }
 
@@ -108,7 +79,7 @@
                 CharCode.Load(IL);
             }
 
-            LoadCharCode(position);
+            source.LoadCharCode(position);
 
             if (current.IsLowSurrogate)
             {
@@ -163,7 +134,7 @@
 
         protected override void CompleteSource()
         {
-            target.CompleteSource(IL, this);
+            target.CompleteSource(IL, source);
             IL.Emit(OpCodes.Ret);
         }
     }
