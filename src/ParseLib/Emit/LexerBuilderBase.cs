@@ -285,15 +285,9 @@
         /// <remarks>The <see cref="CharCode"/> property is expected to be updated with the recent value at this point.</remarks>
         protected virtual void LoadUnicodeCategory(LexicalState current)
         {
-            if (ReflectionInfo.Char_GetCategoryByInt32 != null)
+#if NETSTANDARD2_0
+            if (current.IsLowSurrogate)
             {
-                // .Net Standard 2.1+
-                CharCode.Load(IL);
-                IL.Emit(OpCodes.Call, ReflectionInfo.Char_GetCategoryByInt32);
-            }
-            else if (current.IsLowSurrogate)
-            {
-                // .Net Standard 2.0
                 CharCode.Load(IL);
                 IL.Emit(OpCodes.Call, ReflectionInfo.Char_FromUtf32);
                 IL.Emit(OpCodes.Ldc_I4_0);
@@ -304,6 +298,10 @@
                 CharCode.Load(IL);
                 IL.Emit(OpCodes.Call, ReflectionInfo.Char_GetCategoryByChar);
             }
+#else
+            CharCode.Load(IL);
+            IL.Emit(OpCodes.Call, ReflectionInfo.Char_GetCategoryByInt32);
+#endif            
         }
 
         /// <summary>
