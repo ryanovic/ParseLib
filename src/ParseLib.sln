@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParseLib", "ParseLib\ParseLib.csproj", "{3C7C6A2C-529E-401F-BADC-3739AC6D53DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ry.ParseLib", "Ry.ParseLib\Ry.ParseLib.csproj", "{3C7C6A2C-529E-401F-BADC-3739AC6D53DA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParseLib.Tests", "ParseLib.Tests\ParseLib.Tests.csproj", "{BDA3572D-F8AF-4724-8CC8-CA4C646CB4B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ry.ParseLib.Tests", "Ry.ParseLib.Tests\Ry.ParseLib.Tests.csproj", "{BDA3572D-F8AF-4724-8CC8-CA4C646CB4B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
