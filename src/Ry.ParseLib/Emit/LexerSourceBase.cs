@@ -5,6 +5,9 @@
     using System.Reflection.Emit;
     using System.Text;
 
+    /// <summary>
+    /// Defines basic operations for processing input for a lexer.
+    /// </summary>
     internal abstract class LexerSourceBase : ILexerSource
     {
         protected ILGenerator IL { get; }

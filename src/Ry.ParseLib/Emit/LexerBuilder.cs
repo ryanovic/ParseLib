@@ -6,7 +6,7 @@
     using Ry.ParseLib.Text;
 
     /// <summary>
-    /// Implements a lexical analyzer that accepts <see cref="ILexerSource"/> as a source and <see cref="ILexerTarget"/> as a target interfaces.
+    /// Represents a lexical analyzer.
     /// </summary>
     public sealed class LexerBuilder : LexerBuilderBase
     {

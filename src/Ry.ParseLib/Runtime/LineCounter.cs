@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
 
-    public sealed class LineCounter
+    internal sealed class LineCounter
     {
         /// <summary>
         /// Gets a list of positions representing the beginning of a line.

@@ -3,7 +3,7 @@
     using System;
 
     /// <summary>
-    /// Represents the basis for a string parser.
+    /// Represents a string based parser.
     /// </summary>
     public abstract class StringParser : ParserBase
     {
@@ -36,9 +36,9 @@
         }
 
         /// <summary>
-        /// Processes a defined string value.
+        /// Runs a lexical analyzer for a specified buffer.
         /// </summary>
-        /// <remarks>The method is implemented by a string parser generator.</remarks>
+        /// <remarks>The method is implemented by a parser generator.</remarks>
         protected abstract void Read(ReadOnlySpan<char> buffer);
 
         protected override (int, int) GetLinePosition(int position)

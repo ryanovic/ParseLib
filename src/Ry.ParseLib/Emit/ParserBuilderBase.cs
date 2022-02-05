@@ -10,7 +10,7 @@
     using Ry.ParseLib.Text;
 
     /// <summary>
-    /// Implements the basic operations for generating a parser.
+    /// Implements basic operations for generating a parser.
     /// </summary>
     public abstract class ParserBuilderBase : ILexerTarget
     {

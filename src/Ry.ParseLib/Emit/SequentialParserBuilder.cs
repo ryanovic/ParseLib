@@ -6,7 +6,7 @@
     using System.Reflection.Emit;
 
     /// <summary>
-    /// Implements <see cref="ParserBuilderBase"/> class for a <see cref="SequentialLexerSource">sequential</see> input source.
+    /// Represents a sequential parser builder. 
     /// </summary>
     public sealed class SequentialParserBuilder : ParserBuilderBase
     {

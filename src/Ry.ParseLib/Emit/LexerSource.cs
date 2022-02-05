@@ -5,6 +5,9 @@
     using System.Reflection.Emit;
     using System.Text;
 
+    /// <summary>
+    /// Represents input for a lexer analyzer.
+    /// </summary>
     internal sealed class LexerSource : LexerSourceBase
     {
         public LexerSource(ILGenerator il) : base(il)

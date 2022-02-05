@@ -5,6 +5,9 @@
     using System.Reflection.Emit;
     using Ry.ParseLib.Text;
 
+    /// <summary>
+    /// Represents a sequential lexical analyzer. 
+    /// </summary>
     public sealed class SequentialLexerBuilder : LexerBuilderBase
     {
         private readonly SequentialLexerSource source;

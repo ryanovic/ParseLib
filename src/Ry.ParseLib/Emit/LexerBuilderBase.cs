@@ -6,7 +6,7 @@
     using Ry.ParseLib.Text;
 
     /// <summary>
-    /// Implements the basic operations for generating a lexical analyzer.
+    /// Implements base for a lexical analyzer.
     /// </summary>
     public abstract class LexerBuilderBase
     {

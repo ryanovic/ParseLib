@@ -6,7 +6,7 @@
     using System.Reflection.Emit;
 
     /// <summary>
-    /// Implements <see cref="ParserBuilderBase"/> class for a <see cref="StringParserSource">string</see> input source.
+    /// Represents a parser builder. 
     /// </summary>
     public sealed class ParserBuilder : ParserBuilderBase
     {

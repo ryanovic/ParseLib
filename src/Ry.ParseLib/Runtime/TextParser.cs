@@ -5,6 +5,9 @@
     using System.IO;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Represents a text stream based parser.
+    /// </summary>
     public abstract class TextParser : ParserBase
     {
         private const int DefaultBufferSize = 4096;
@@ -70,13 +73,11 @@
         }
 
         /// <summary>
-        /// Processes text from a specified buffer.
+        /// Runs a sequential lexical analyzer for text from a specified buffer.
         /// </summary>
         /// <param name="bufferPosition">The source position corresponding to the beginning of the buffer.</param>
         /// <param name="buffer">The data buffer containing a sequence of pending character codes.</param>
-        /// <param name="offset">The buffer start index.</param>
-        /// <param name="length">The buffer length.</param>
-        /// <param name="isFinal">The value indicating whether the source is completed indicating the buffer is a last data chunk in a row.</param>
+        /// <param name="isFinal">The value indicating whether the buffer is a last data chunk in the source.</param>
         /// <returns><c>true</c> if the buffer is entirelly read or <c>false</c> if a current position is restored before the buffer start.</returns>
         /// <remarks>The method is implemented by a sequential parser generator.</remarks>
         protected abstract bool Read(int bufferPosition, ReadOnlySpan<char> buffer, bool isFinal);
@@ -114,18 +115,16 @@
         {
             lines.Accept(bufferPosition, span);
             Read(bufferPosition, span, isFinal: false);
-            ShfitBuffer();
-            lines.Discard(bufferPosition);
-            return CurrentPosition - StartPosition;
+            return ShfitBuffer();
         }
 
-        private void ShfitBuffer()
+        private int ShfitBuffer()
         {
             var currentLength = CurrentPosition - StartPosition;
 
-            if (2 * currentLength > buffer.Length)
+            if (2L * currentLength > buffer.Length)
             {
-                var tmp = new char[buffer.Length * 2];
+                var tmp = new char[buffer.Length * 2L];
                 Array.Copy(buffer, StartPosition - bufferPosition, tmp, 0, currentLength);
                 buffer = tmp;
             }
@@ -135,6 +134,8 @@
             }
 
             bufferPosition = StartPosition;
+            lines.Discard(bufferPosition);
+            return currentLength;
         }
     }
 }
