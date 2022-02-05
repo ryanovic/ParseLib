@@ -2,7 +2,7 @@
 
 .NET library that provides components for dynamic parsers generation.
 
-[![NuGet version (ParseLib)](https://img.shields.io/nuget/v/ParseLib.svg?style=flat-square)](https://www.nuget.org/packages/ParseLib/)
+[![NuGet version (Ry.ParseLib)](https://img.shields.io/nuget/v/Ry.ParseLib.svg?style=flat-square)](https://www.nuget.org/packages/Ry.ParseLib/)
 
 ## Features
 
