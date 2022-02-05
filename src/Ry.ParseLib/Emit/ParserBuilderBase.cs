@@ -96,13 +96,12 @@
             // Properties.
             BuildStartPositionProperty();
             BuildCurrentPositionProperty();
-            BuildIsCompletedProperty();
 
             // Miscellaneous.
             BuildGetTerminalNameMethod();
             BuildGetNonTerminalNameMethod();
             BuildGetParserStateMethod();
-            BuildGetTopValueMethod();
+            BuildGetResultMethod();
 
             // Generate.
             BuildConstructors();
@@ -710,35 +709,26 @@
             il.Emit(OpCodes.Ret);
         }
 
-        /// <remarks>
-        /// <code>bool IsCompleted { get; }</code>
-        /// </remarks>
-        private void BuildIsCompletedProperty()
-        {
-            var method = Target.DefineMethod("get_IsCompleted",
-                MethodAttributes.Public | MethodAttributes.Virtual, typeof(bool), Type.EmptyTypes);
-            var il = method.GetILGenerator();
-
-            stateStack.Peek(il, 0);
-            il.Emit(OpCodes.Ldc_I4_M1);
-            il.Emit(OpCodes.Ceq);
-            il.Emit(OpCodes.Ret);
-        }
-
         /// <summary>
         /// Generates the method that return a value form the top of the value stack or <c>null</c> if the stack is emtpy.
         /// </summary>
         /// <remarks>
         /// <code>object GetTopValue();</code>
         /// </remarks>
-        private void BuildGetTopValueMethod()
+        private void BuildGetResultMethod()
         {
-            var method = Target.DefineMethod("GetTopValue",
-                MethodAttributes.Family | MethodAttributes.Virtual, typeof(object), Type.EmptyTypes);
+            var method = Target.DefineMethod("GetResult",
+                MethodAttributes.Public | MethodAttributes.Virtual, typeof(object), Type.EmptyTypes);
             var il = method.GetILGenerator();
 
             var label = il.DefineLabel();
 
+            stateStack.Peek(il, 0);
+            il.Emit(OpCodes.Ldc_I4_M1);
+            il.Emit(OpCodes.Beq_S, label);
+            il.ThrowInvalidOperationException(Errors.ParserNotCompleted());
+
+            label = il.MarkAndDefine(label);
             dataStack.GetCount(il);
             il.Emit(OpCodes.Brtrue, label);
             il.Emit(OpCodes.Ldnull);

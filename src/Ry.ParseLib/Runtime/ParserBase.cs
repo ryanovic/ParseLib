@@ -11,12 +11,6 @@
     public abstract class ParserBase
     {
         /// <summary>
-        /// Gets a value indicating whether the parser is in a comlpeted state.
-        /// </summary>
-        /// <remarks>The property is implemented by a target parser generator.</remarks>
-        public abstract bool IsCompleted { get; }
-
-        /// <summary>
         /// Gets the position in the source where a pending token is started.
         /// </summary>
         /// <remarks>The property is implemented by a target parser generator.</remarks>
@@ -48,17 +42,9 @@
         }
 
         /// <summary>
-        /// Gets a generated result. Expects the parser is in a completed state.
+        /// Returns a top value from the data stack. The parser must be in the completed state.
         /// </summary>
-        public virtual object GetResult()
-        {
-            if (!IsCompleted)
-            {
-                throw new InvalidOperationException(Errors.ParserNotCompleted());
-            }
-
-            return GetTopValue();
-        }
+        public abstract object GetResult();
 
         /// <summary>
         /// Gets a row and column correspoinding to a specififed position in a source.
@@ -100,12 +86,6 @@
             PopulateExceptionDetails(error, position);
             return error;
         }
-
-        /// <summary>
-        /// Gets a value for the top of the parser value stack or <c>null</c> if the stack is empty.
-        /// </summary>
-        /// <remarks>The method is implemented by a target parser generator.</remarks>
-        protected abstract object GetTopValue();
 
         /// <summary>
         /// Gets a string represeting all grammar symbols are recognized by the parser. 

@@ -10,7 +10,7 @@
 
         public static string ExceptionOccurred() => "Exception has occurred.";
 
-        public static string ParserNotCompleted() => "Can't get the result until source is not entirely processed.";
+        public static string ParserNotCompleted() => "Can't get the result until the source is fully processed.";
 
         public static string UnresolvedShift() => "Grammar contains unresolved shift-reduce conflict.";
 
