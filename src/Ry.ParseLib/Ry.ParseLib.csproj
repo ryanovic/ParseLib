@@ -12,6 +12,7 @@
     <RepositoryUrl>https://github.com/ryanovic/ParseLib/tree/main/src/ParseLib</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>LALR grammar emit parser lexer generator</PackageTags>
+    <Version>2.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
