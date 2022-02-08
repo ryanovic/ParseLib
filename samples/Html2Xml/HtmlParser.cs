@@ -109,9 +109,16 @@
         // When method with such signature is defined on the parser it would be executed for every token recognized.
         protected void OnTokenCompleted(string name)
         {
+            var from = GetLinePosition(StartPosition);
+            var to = GetLinePosition(CurrentPosition);
+
             if (name != "ws")
             {
-                Console.WriteLine($"token({name}): {GetValue()}");
+                Console.WriteLine($"token({name}): {GetValue()} [{from.Item1}:{from.Item2} - {to.Item1}:{to.Item2})");
+            }
+            else
+            {
+                Console.WriteLine($"token({name}) [{from.Item1}:{from.Item2} - {to.Item1}:{to.Item2})");
             }
         }
 

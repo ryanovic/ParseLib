@@ -38,7 +38,7 @@
             grammar.CreateTerminals("+", "-", "/", "*", "(", ")");
 
             // Root non-terminal.
-            grammar.CreateNonTerminals("expr");
+            var expr = grammar.CreateNonTerminal("expr");
 
             // Define whitespace so digits and operators could be separated in the source. 
             grammar.CreateWhitespace("ws", Rex.Char(' ').OneOrMore());
@@ -51,17 +51,17 @@
             // expr -> num
             // expr -> a
             // expr -> b
-            grammar.CreateTerminal("expr:num", Rex.Char("0-9").OneOrMore());
-            grammar.CreateTerminal("expr:a", Rex.Char('a'));
-            grammar.CreateTerminal("expr:b", Rex.Char('b'));
+            expr.AddProduction("expr:num", grammar.CreateTerminal("num", Rex.Char("0-9").OneOrMore()));
+            expr.AddProduction("expr:a", grammar.CreateTerminal("a", Rex.Char('a')));
+            expr.AddProduction("expr:b", grammar.CreateTerminal("b", Rex.Char('b')));
 
             // Define production for each operation.
-            grammar.AddRule("expr:unary", "- expr");
-            grammar.AddRule("expr:add", "expr + expr");
-            grammar.AddRule("expr:sub", "expr - expr");
-            grammar.AddRule("expr:mul", "expr * expr");
-            grammar.AddRule("expr:div", "expr / expr");
-            grammar.AddRule("expr:group", "( expr )");
+            expr.AddProduction("expr:unary", "- expr");
+            expr.AddProduction("expr:add", "expr + expr");
+            expr.AddProduction("expr:sub", "expr - expr");
+            expr.AddProduction("expr:mul", "expr * expr");
+            expr.AddProduction("expr:div", "expr / expr");
+            expr.AddProduction("expr:group", "( expr )");
 
             return grammar;
         }

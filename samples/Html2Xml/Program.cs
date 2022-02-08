@@ -56,7 +56,10 @@
             var grammar = new Grammar(ignoreCase: true);
 
             // Any non-terminal should be defined before it's referenced.
-            grammar.CreateNonTerminals("node", "nodes", "attr", "attrs");
+            var node = grammar.CreateNonTerminal("node");
+            var nodes = grammar.CreateNonTerminal("nodes");
+            var attr = grammar.CreateNonTerminal("attr");
+            var attrs = grammar.CreateNonTerminal("attrs");
 
             // List of plain terminals (keywords, punctuators, etc..).
             // Each item will serve as a name and an expression pattern simultaneously.
@@ -65,14 +68,10 @@
             // Terminals defined as whitespace could appear at any position within production.
             grammar.CreateWhitespace("ws", ws.OneOrMore());
 
-            // ':' defines a complex name in 'owner:name' format. In the example below it leads to two different actions are performed:
-            // - First, terminal 'name' is created for provided regular expression.
-            // - Second - implicit production is defined to reduce newly created terminal to 'owner' (which should be a valid non-terminal symbol)
             // Lazy parameter when set forces expression to be completed as soon as a final state is reached.
-            grammar.CreateTerminal("node:comment", Rex.Text("<!--").Then(Rex.AnyText).Then("-->"), lazy: true);
-            grammar.CreateTerminal("node:text", text_char.OneOrMore());
+            node.AddProduction("node:comment", grammar.CreateTerminal("comment", Rex.Text("<!--").Then(Rex.AnyText).Then("-->"), lazy: true));
+            node.AddProduction("node:text", grammar.CreateTerminal("text", text_char.OneOrMore()));
 
-            // Symbol name could include any non-space characters (except ':').
             grammar.CreateTerminal("%script%", script_char.OneOrMore());
 
             // Since '<script' terminal is defined earlier in the grammar it would have priority over more generic '<tag' during processing. 
@@ -82,12 +81,9 @@
             grammar.CreateTerminal("attr-value-raw", name_char.OneOrMore());
             grammar.CreateTerminal("attr-value-str", Rex.Char('"').Then(Rex.AnyText).Then('"'), lazy: true);
 
-            // Complex name (owner:name) is treated differently in a production rule definition -
-            // 'owner' always defines a non-terminal symbol the rule is defined for and 'owner:name' will form a key, newly created production can be referenced by.
-            // Meanwhile NO extra 'name' symbol is defined.
-            grammar.AddRule("attr:single", "attr-name");
-            grammar.AddRule("attr:value-raw", "attr-name = attr-value-raw");
-            grammar.AddRule("attr:value-str", "attr-name = attr-value-str");
+            attr.AddProduction("attr:single", "attr-name");
+            attr.AddProduction("attr:value-raw", "attr-name = attr-value-raw");
+            attr.AddProduction("attr:value-str", "attr-name = attr-value-str");
 
             // Each grammar conflict must be explicitly resolved, so in the example below for LALR state like:
             // 'attrs' -> . (reduce empty on 'attr-name')
@@ -95,22 +91,22 @@
             // 'attr'  -> . attr-name
             // ...
             // The shift action will be forced when 'attr-name' token encountered.
-            grammar.AddRule("attrs:empty", "").ShiftOn("attr-name");
-            grammar.AddRule("attrs:init", "attr");
-            grammar.AddRule("attrs:append", "attrs attr");
+            attrs.AddProduction("attrs:empty", "").ShiftOn("attr-name");
+            attrs.AddProduction("attrs:init", "attr");
+            attrs.AddProduction("attrs:append", "attrs attr");
 
             // 'node' -> '<script' 'attrs' '/>'
-            grammar.AddRule("node:script-single", "<script attrs />");
+            node.AddProduction("node:script-single", "<script attrs />");
 
             // 'node' -> '<script' 'attrs' '>' '%script%' '</script' '>'
-            grammar.AddRule("node:script-inline", "<script attrs > %script% </script >");
+            node.AddProduction("node:script-inline", "<script attrs > %script% </script >");
 
-            grammar.AddRule("node:tag-single", "<tag attrs />");
-            grammar.AddRule("node:tag-open", "<tag attrs >");
-            grammar.AddRule("node:tag-close", "</tag >");
+            node.AddProduction("node:tag-single", "<tag attrs />");
+            node.AddProduction("node:tag-open", "<tag attrs >");
+            node.AddProduction("node:tag-close", "</tag >");
 
-            grammar.AddRule("nodes:init", "node");
-            grammar.AddRule("nodes:append", "nodes node");
+            nodes.AddProduction("nodes:init", "node");
+            nodes.AddProduction("nodes:append", "nodes node");
 
             return grammar;
         }
