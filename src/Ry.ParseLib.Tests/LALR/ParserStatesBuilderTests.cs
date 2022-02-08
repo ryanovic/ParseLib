@@ -242,28 +242,28 @@ namespace Ry.ParseLib.LALR
             var grammar = new Grammar();
 
             grammar.CreateTerminals("num", "+", "-", "/", "*", "(", ")");
-            grammar.CreateNonTerminals("expr");
+            var expr = grammar.CreateNonTerminal("expr");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:num", "num");
+            expr.AddProduction("expr:num", "num");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:unary", "- expr")
+            expr.AddProduction("expr:unary", "- expr")
                 .ReduceOn("*", "/", "+", "-");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:add", "expr + expr")
+            expr.AddProduction("expr:add", "expr + expr")
                 .ReduceOn("+", "-")
                 .ShiftOn("*", "/");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:sub", "expr - expr")
+            expr.AddProduction("expr:sub", "expr - expr")
                 .ReduceOn("+", "-")
                 .ShiftOn("*", "/");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:mul", "expr * expr")
+            expr.AddProduction("expr:mul", "expr * expr")
                 .ReduceOn("*", "/", "+", "-");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:div", "expr / expr")
+            expr.AddProduction("expr:div", "expr / expr")
                 .ReduceOn("*", "/", "+", "-");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:group", "( expr )");
+            expr.AddProduction("expr:group", "( expr )");
 
             var states = grammar.CreateParserStates("expr");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -279,15 +279,15 @@ namespace Ry.ParseLib.LALR
             var grammar = new Grammar(new TestExprResolver());
 
             grammar.CreateTerminals("num", "+", "-", "/", "*", "(", ")");
-            grammar.CreateNonTerminals("expr");
+            var expr = grammar.CreateNonTerminal("expr");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:num", "num");
-            grammar.GetNonTerminal("expr").AddProduction("expr:unary", "- expr");
-            grammar.GetNonTerminal("expr").AddProduction("expr:add", "expr + expr");
-            grammar.GetNonTerminal("expr").AddProduction("expr:sub", "expr - expr");
-            grammar.GetNonTerminal("expr").AddProduction("expr:mul", "expr * expr");
-            grammar.GetNonTerminal("expr").AddProduction("expr:div", "expr / expr");
-            grammar.GetNonTerminal("expr").AddProduction("expr:group", "( expr )");
+            expr.AddProduction("expr:num", "num");
+            expr.AddProduction("expr:unary", "- expr");
+            expr.AddProduction("expr:add", "expr + expr");
+            expr.AddProduction("expr:sub", "expr - expr");
+            expr.AddProduction("expr:mul", "expr * expr");
+            expr.AddProduction("expr:div", "expr / expr");
+            expr.AddProduction("expr:group", "( expr )");
 
             var states = grammar.CreateParserStates("expr");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -304,12 +304,14 @@ namespace Ry.ParseLib.LALR
             var grammar = new Grammar(new TestCoreResolver());
 
             grammar.CreateTerminals("id", ":", ";", "{", "}", "=");
-            grammar.CreateNonTerminals("stmnt", "expr");
 
-            grammar.GetNonTerminal("expr").AddProduction("expr:obj", "{ id : id }");
-            grammar.GetNonTerminal("expr").AddProduction("expr:assign", "id = expr");
-            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:expr", "expr ;");
-            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:block", "{ stmnt }");
+            var expr = grammar.CreateNonTerminal("expr");
+            var stmnt = grammar.CreateNonTerminal("stmnt");
+
+            expr.AddProduction("expr:obj", "{ id : id }");
+            expr.AddProduction("expr:assign", "id = expr");
+            stmnt.AddProduction("stmnt:expr", "expr ;");
+            stmnt.AddProduction("stmnt:block", "{ stmnt }");
 
             var states = grammar.CreateParserStates("stmnt");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));

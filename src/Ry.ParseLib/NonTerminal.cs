@@ -39,7 +39,12 @@
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
 
-            return productions[name];
+            if (productions.TryGetValue(name, out var production))
+            {
+                return production;
+            }
+
+            throw new InvalidOperationException(Errors.ProductionNotFound(name));
         }
 
         public bool TryGetProduction(string name, out Production production)

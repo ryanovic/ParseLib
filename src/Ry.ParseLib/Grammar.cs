@@ -57,7 +57,7 @@
                     return symbol;
                 }
 
-                throw new KeyNotFoundException(Errors.SymbolNotFound(name));
+                throw new InvalidOperationException(Errors.SymbolNotFound(name));
             }
         }
 
