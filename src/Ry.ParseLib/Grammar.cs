@@ -155,29 +155,15 @@
         }
 
         /// <summary>
-        /// Creates a new terminal with a specified name. If the name is in the <c>owner:local</c> format then
-        /// a terminal with a <c>local</c> name will be created, and production <c>owner:local -> local</c> 
-        /// will be added.
+        /// Creates a new terminal with a specified name.
         /// </summary>
         public Terminal CreateTerminal(string name, RexNode expression, bool lazy = false)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            Terminal terminal;
-
-            if (TryResolveComplexName(name, out var head, out var local))
-            {
-                terminal = new Terminal(local, expression, terminalId++, lazy);
-                AddSymbol(terminal);
-                AddRule(head, name, local);
-            }
-            else
-            {
-                terminal = new Terminal(name, expression, terminalId++, lazy);
-                AddSymbol(terminal);
-            }
-
+            var terminal = new Terminal(name, expression, terminalId++, lazy);
+            AddSymbol(terminal);
             return terminal;
         }
 
@@ -203,7 +189,6 @@
 
             var terminal = new Terminal(lexeme, terminalId++);
             AddSymbol(terminal);
-
             return terminal;
         }
 
@@ -214,7 +199,7 @@
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
 
-            var nonTerminal = new NonTerminal(name, nonTerminalId++);
+            var nonTerminal = new NonTerminal(name, nonTerminalId++, this);
             AddSymbol(nonTerminal);
             return nonTerminal;
         }
@@ -230,49 +215,6 @@
             {
                 CreateNonTerminal(name);
             }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether a production with a specified name is defined in the grammar.
-        /// </summary>
-        public bool ContainsRule(string name)
-        {
-            return GetNonTerminal(GetNonTerminalName(name)).ContainsProduction(name);
-        }
-
-        /// <summary>
-        /// Gets a production by a specified name.
-        /// </summary>
-        public Production GetRule(string name)
-        {
-            return GetNonTerminal(GetNonTerminalName(name)).GetProduction(name);
-        }
-
-        /// <summary>
-        /// Creates a new production with a specified name.
-        /// </summary>
-        /// <param name="name">A name in <c>owner:rule</c> or <c>owner</c> format. The <c>owner</c> part defines a parent non-terminal. The nume must be unique within the grammar.</param>
-        /// <param name="body">A space separated list of symbols that defines a production body.</param>
-        public ProductionBuilder AddRule(string name, string body)
-        {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-
-            return AddRule(GetNonTerminalName(name), name, body);
-        }
-
-        /// <summary>
-        /// Creates a new production with a specified name.
-        /// </summary>
-        /// <param name="head">A name of a parent non-terminal.</param>
-        /// <param name="productionName">A name of the production. The name must be unique within the grammar.</param>
-        /// <param name="body">A space separated list of symbols that defines a production body.</param>
-        public ProductionBuilder AddRule(string head, string productionName, string body)
-        {
-            if (head == null) throw new ArgumentNullException(nameof(head));
-            if (productionName == null) throw new ArgumentNullException(nameof(productionName));
-            if (body == null) throw new ArgumentNullException(nameof(body));
-
-            return new ProductionBuilder(this, GetNonTerminal(head).AddProduction(productionName, ParseSymbols(body)));
         }
 
         /// <summary>
@@ -294,7 +236,7 @@
 
                     if (i == body.Length - 1 || Char.IsWhiteSpace(body[i + 1]))
                     {
-                        symbols.Add(Symbols[body.Substring(start, i - start + 1)]);
+                        symbols.Add(this[body.Substring(start, i - start + 1)]);
                     }
                 }
             }
@@ -338,6 +280,11 @@
 
         private Symbol AddSymbol(Symbol symbol)
         {
+            if (Symbols.ContainsKey(symbol.Name))
+            {
+                throw new InvalidOperationException(Errors.SymbolDefined(symbol.Name));
+            }
+
             if (symbol.Name.Any(x => Char.IsWhiteSpace(x)))
             {
                 throw new ArgumentException(Errors.SymbolNameWhitespace(), nameof(symbol));
@@ -345,28 +292,6 @@
 
             Symbols.Add(symbol.Name, symbol);
             return symbol;
-        }
-
-        private static string GetNonTerminalName(string name)
-        {
-            return TryResolveComplexName(name, out var owner, out var _) ? owner : name;
-        }
-
-        private static bool TryResolveComplexName(string name, out string owner, out string local)
-        {
-            int index = name.IndexOf(':');
-
-            if (index > 0)
-            {
-                owner = name.Substring(0, index);
-                local = name.Substring(index + 1);
-                return true;
-            }
-            else
-            {
-                local = owner = null;
-                return false;
-            }
         }
     }
 }

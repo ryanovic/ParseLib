@@ -16,9 +16,9 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b");
             grammar.CreateNonTerminals("S", "A", "B");
 
-            grammar.AddRule("S", "A B");
-            grammar.AddRule("A", "a");
-            grammar.AddRule("B", "b");
+            grammar.GetNonTerminal("S").AddProduction("S", "A B");
+            grammar.GetNonTerminal("A").AddProduction("A", "a");
+            grammar.GetNonTerminal("B").AddProduction("B", "b");
 
             var states = grammar.CreateParserStates("S");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -41,11 +41,11 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b", "c");
             grammar.CreateNonTerminals("S", "A", "B", "C");
 
-            grammar.AddRule("S", "A B C");
-            grammar.AddRule("A", "a");
-            grammar.AddRule("B:0", "b");
-            grammar.AddRule("B:1", "");
-            grammar.AddRule("C", "c");
+            grammar.GetNonTerminal("S").AddProduction("S", "A B C");
+            grammar.GetNonTerminal("A").AddProduction("A", "a");
+            grammar.GetNonTerminal("B").AddProduction("B:0", "b");
+            grammar.GetNonTerminal("B").AddProduction("B:1", "");
+            grammar.GetNonTerminal("C").AddProduction("C", "c");
 
             var states = grammar.CreateParserStates("S");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -64,11 +64,11 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("id", "*", "=");
             grammar.CreateNonTerminals("S", "L", "R");
 
-            grammar.AddRule("S:0", "L = R");
-            grammar.AddRule("S:1", "R");
-            grammar.AddRule("L:0", "id");
-            grammar.AddRule("L:1", "* R");
-            grammar.AddRule("R", "L");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "L = R");
+            grammar.GetNonTerminal("S").AddProduction("S:1", "R");
+            grammar.GetNonTerminal("L").AddProduction("L:0", "id");
+            grammar.GetNonTerminal("L").AddProduction("L:1", "* R");
+            grammar.GetNonTerminal("R").AddProduction("R", "L");
 
             var states = grammar.CreateParserStates("S");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -90,12 +90,12 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b", "c");
             grammar.CreateNonTerminals("S", "A", "B", "C");
 
-            grammar.AddRule("S:0", "A [NoLB] B");
-            grammar.AddRule("S:1", "A C");
-            grammar.AddRule("A:0", "a [LB]");
-            grammar.AddRule("A:1", "[LB]");
-            grammar.AddRule("B", "b");
-            grammar.AddRule("C", "c");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
+            grammar.GetNonTerminal("S").AddProduction("S:1", "A C");
+            grammar.GetNonTerminal("A").AddProduction("A:0", "a [LB]");
+            grammar.GetNonTerminal("A").AddProduction("A:1", "[LB]");
+            grammar.GetNonTerminal("B").AddProduction("B", "b");
+            grammar.GetNonTerminal("C").AddProduction("C", "c");
 
             var states = grammar.CreateParserStates("S");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -116,12 +116,12 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b", "c");
             grammar.CreateNonTerminals("S", "A", "B", "C");
 
-            grammar.AddRule("S:0", "A [NoLB] B");
-            grammar.AddRule("S:1", "A C");
-            grammar.AddRule("A:0", "a [LB]");
-            grammar.AddRule("A:1", "[LB]");
-            grammar.AddRule("B", "b");
-            grammar.AddRule("C", "c");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
+            grammar.GetNonTerminal("S").AddProduction("S:1", "A C");
+            grammar.GetNonTerminal("A").AddProduction("A:0", "a [LB]");
+            grammar.GetNonTerminal("A").AddProduction("A:1", "[LB]");
+            grammar.GetNonTerminal("B").AddProduction("B", "b");
+            grammar.GetNonTerminal("C").AddProduction("C", "c");
 
             var states = grammar.CreateParserStates("S");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -140,11 +140,11 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b", "c");
             grammar.CreateNonTerminals("S", "A", "B", "C");
 
-            grammar.AddRule("S:0", "A [NoLB] B");
-            grammar.AddRule("S:1", "A C");
-            grammar.AddRule("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
-            grammar.AddRule("B", "b");
-            grammar.AddRule("C", "c");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
+            grammar.GetNonTerminal("S").AddProduction("S:1", "A C");
+            grammar.GetNonTerminal("A").AddProduction("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
+            grammar.GetNonTerminal("B").AddProduction("B", "b");
+            grammar.GetNonTerminal("C").AddProduction("C", "c");
 
             var states = grammar.CreateParserStates("S");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -163,11 +163,11 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b", "c");
             grammar.CreateNonTerminals("S", "A", "B", "C");
 
-            grammar.AddRule("S:0", "A [NoLB] B");
-            grammar.AddRule("S:1", "A C");
-            grammar.AddRule("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
-            grammar.AddRule("B", "b");
-            grammar.AddRule("C", "c");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
+            grammar.GetNonTerminal("S").AddProduction("S:1", "A C");
+            grammar.GetNonTerminal("A").AddProduction("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
+            grammar.GetNonTerminal("B").AddProduction("B", "b");
+            grammar.GetNonTerminal("C").AddProduction("C", "c");
 
             var states = grammar.CreateParserStates("S");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -184,8 +184,8 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("expr", "if", "then", "else");
             grammar.CreateNonTerminals("stmnt");
 
-            grammar.AddRule("stmnt:if", "if expr then stmnt");
-            grammar.AddRule("stmnt:if-else", "if expr then stmnt else stmnt");
+            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:if", "if expr then stmnt");
+            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:if-else", "if expr then stmnt else stmnt");
 
             var ex = Assert.Throws<GrammarException>(() =>
             {
@@ -204,12 +204,12 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b", "c", "d", "e");
             grammar.CreateNonTerminals("S", "A", "B");
 
-            grammar.AddRule("S:0", "a A d");
-            grammar.AddRule("S:1", "b B d");
-            grammar.AddRule("S:2", "a B e");
-            grammar.AddRule("S:3", "b A e");
-            grammar.AddRule("A", "c");
-            grammar.AddRule("B", "c");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "a A d");
+            grammar.GetNonTerminal("S").AddProduction("S:1", "b B d");
+            grammar.GetNonTerminal("S").AddProduction("S:2", "a B e");
+            grammar.GetNonTerminal("S").AddProduction("S:3", "b A e");
+            grammar.GetNonTerminal("A").AddProduction("A", "c");
+            grammar.GetNonTerminal("B").AddProduction("B", "c");
 
             Assert.Throws<GrammarException>(() =>
             {
@@ -226,8 +226,8 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("expr", "if", "then", "else");
             grammar.CreateNonTerminals("stmnt");
 
-            grammar.AddRule("stmnt:if", "if expr then stmnt").ShiftOn("else");
-            grammar.AddRule("stmnt:if-else", "if expr then stmnt else stmnt");
+            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:if", "if expr then stmnt").ShiftOn("else");
+            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:if-else", "if expr then stmnt else stmnt");
 
             var states = grammar.CreateParserStates("stmnt");
             var actions = states[0].GetState(grammar.GetSymbols("if", "expr", "then", "stmnt")).Actions;
@@ -244,26 +244,26 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("num", "+", "-", "/", "*", "(", ")");
             grammar.CreateNonTerminals("expr");
 
-            grammar.AddRule("expr:num", "num");
+            grammar.GetNonTerminal("expr").AddProduction("expr:num", "num");
 
-            grammar.AddRule("expr:unary", "- expr")
+            grammar.GetNonTerminal("expr").AddProduction("expr:unary", "- expr")
                 .ReduceOn("*", "/", "+", "-");
 
-            grammar.AddRule("expr:add", "expr + expr")
+            grammar.GetNonTerminal("expr").AddProduction("expr:add", "expr + expr")
                 .ReduceOn("+", "-")
                 .ShiftOn("*", "/");
 
-            grammar.AddRule("expr:sub", "expr - expr")
+            grammar.GetNonTerminal("expr").AddProduction("expr:sub", "expr - expr")
                 .ReduceOn("+", "-")
                 .ShiftOn("*", "/");
 
-            grammar.AddRule("expr:mul", "expr * expr")
+            grammar.GetNonTerminal("expr").AddProduction("expr:mul", "expr * expr")
                 .ReduceOn("*", "/", "+", "-");
 
-            grammar.AddRule("expr:div", "expr / expr")
+            grammar.GetNonTerminal("expr").AddProduction("expr:div", "expr / expr")
                 .ReduceOn("*", "/", "+", "-");
 
-            grammar.AddRule("expr:group", "( expr )");
+            grammar.GetNonTerminal("expr").AddProduction("expr:group", "( expr )");
 
             var states = grammar.CreateParserStates("expr");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -281,13 +281,13 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("num", "+", "-", "/", "*", "(", ")");
             grammar.CreateNonTerminals("expr");
 
-            grammar.AddRule("expr:num", "num");
-            grammar.AddRule("expr:unary", "- expr");
-            grammar.AddRule("expr:add", "expr + expr");
-            grammar.AddRule("expr:sub", "expr - expr");
-            grammar.AddRule("expr:mul", "expr * expr");
-            grammar.AddRule("expr:div", "expr / expr");
-            grammar.AddRule("expr:group", "( expr )");
+            grammar.GetNonTerminal("expr").AddProduction("expr:num", "num");
+            grammar.GetNonTerminal("expr").AddProduction("expr:unary", "- expr");
+            grammar.GetNonTerminal("expr").AddProduction("expr:add", "expr + expr");
+            grammar.GetNonTerminal("expr").AddProduction("expr:sub", "expr - expr");
+            grammar.GetNonTerminal("expr").AddProduction("expr:mul", "expr * expr");
+            grammar.GetNonTerminal("expr").AddProduction("expr:div", "expr / expr");
+            grammar.GetNonTerminal("expr").AddProduction("expr:group", "( expr )");
 
             var states = grammar.CreateParserStates("expr");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));
@@ -306,10 +306,10 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("id", ":", ";", "{", "}", "=");
             grammar.CreateNonTerminals("stmnt", "expr");
 
-            grammar.AddRule("expr:obj", "{ id : id }");
-            grammar.AddRule("expr:assign", "id = expr");
-            grammar.AddRule("stmnt:expr", "expr ;");
-            grammar.AddRule("stmnt:block", "{ stmnt }");
+            grammar.GetNonTerminal("expr").AddProduction("expr:obj", "{ id : id }");
+            grammar.GetNonTerminal("expr").AddProduction("expr:assign", "id = expr");
+            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:expr", "expr ;");
+            grammar.GetNonTerminal("stmnt").AddProduction("stmnt:block", "{ stmnt }");
 
             var states = grammar.CreateParserStates("stmnt");
             var state = states[0].GetState(grammar.ParseSymbols(prefix));

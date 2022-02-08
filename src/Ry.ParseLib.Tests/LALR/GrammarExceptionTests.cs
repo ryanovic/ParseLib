@@ -11,8 +11,9 @@
         [Fact]
         public void Ctor_Creates_Instance_From_Stream()
         {
+            var grammar = new Grammar();
             var terminal = new Terminal("test", 0);
-            var head = new NonTerminal("head", 0);
+            var head = new NonTerminal("head", 0, grammar);
             var productionA = new Production(head, "rule:name:1", Array.Empty<Symbol>());
             var productionB = new Production(head, "rule:name:2", Array.Empty<Symbol>());
 

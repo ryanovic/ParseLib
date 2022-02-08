@@ -10,7 +10,7 @@
     public sealed class ParserItem : IEquatable<ParserItem>
     {
         internal static int CompareBySymbol(ParserItem x, ParserItem y) => x.Symbol.Name.CompareTo(y.Symbol.Name);
-        internal static int CompareByProduction(ParserItem x, ParserItem y) => x.Production.Name.CompareTo(y.Production.Name);
+        internal static int CompareByProduction(ParserItem x, ParserItem y) => x.Production.CompareTo(y.Production);
 
         /// <summary>
         /// Gets the current index in the production.

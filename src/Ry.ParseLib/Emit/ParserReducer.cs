@@ -13,9 +13,8 @@
         /// <summary>
         /// Collects reducers defined in the <paramref name="target"/> type.
         /// </summary>
-        /// <param name="skipValidation">Allows reducers which are not defined in the grammar.</param>
         /// <remarks><c>BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static</c></remarks>
-        public static ParserReducer CreateReducer(Type target, Grammar grammar, bool skipValidation = false)
+        public static ParserReducer CreateReducer(Type target, Grammar grammar)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (grammar == null) throw new ArgumentNullException(nameof(grammar));
@@ -29,21 +28,11 @@
             {
                 foreach (CompleteTokenAttribute attr in method.GetCustomAttributes(typeof(CompleteTokenAttribute)))
                 {
-                    if (!(skipValidation || grammar.ContainsTerminal(attr.Token)))
-                    {
-                        throw new InvalidOperationException(Errors.TokenNotFound(attr.Token));
-                    }
-
                     reducer.AddTokenReducer(attr.Token, method);
                 }
 
                 foreach (ReduceAttribute attr in method.GetCustomAttributes(typeof(ReduceAttribute)))
                 {
-                    if (!(skipValidation || grammar.ContainsRule(attr.Production)))
-                    {
-                        throw new InvalidOperationException(Errors.ProductionNotFound(attr.Production));
-                    }
-
                     reducer.AddProductionReducer(attr.Production, method);
                 }
 

@@ -28,11 +28,11 @@
 
         public static string TypeExpected(string name) => $"Cell of {name} type is expected.";
 
-        public static string TokenNotFound(string name) => $"Token '{name}' is not defined on the grammar.";
+        public static string TokenNotFound(string name) => $"Token '{name}' is not defined in the grammar.";
 
-        public static string ProductionNotFound(string name) => $"Production '{name}' is not defined on the grammar.";
+        public static string ProductionNotFound(string name) => $"Production '{name}' is not defined in the grammar.";
 
-        public static string SymbolNotFound(string name) => $"Symbol '{name}' is not defined on the grammar.";
+        public static string SymbolNotFound(string name) => $"Symbol '{name}' is not defined in the grammar.";
 
         public static string UnexpectedEndOfSoruce() => "Unexpected end of source encountered.";
 
@@ -67,5 +67,9 @@
         public static string InvalidCategory(string name) => $"Can't find '{name}' unicode category.";
 
         public static string SymbolNameWhitespace() => "Whitespace characters are not allowed in a symbol name.";
+
+        public static string ProductionDefined(string name) => $"Production '{name}' is already defined in the grammer.";
+
+        public static string SymbolDefined(string name) => $"Symbol '{name}' is already defined in the grammer.";
     }
 }

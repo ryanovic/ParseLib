@@ -47,18 +47,18 @@ namespace Ry.ParseLib.Emit
             grammar.CreateWhitespace("cmnt", Rex.Text("/*").Then(cmnt_char.NoneOrMore()).Then("*/"), lazy: true);
             grammar.CreateWhitespace("cmnt_lb", Rex.Text("/*").Then(cmnt_char_lb.NoneOrMore()).Then("*/"), isLineBreak: true, lazy: true);
 
-            grammar.CreateTerminal("A:a", Rex.Char('a'));
-            grammar.CreateTerminal("A:aaa", Rex.Text("aaa"));
-            grammar.CreateTerminal("B:b", Rex.Char('b'));
-            grammar.CreateTerminal("C:c", Rex.Char('c'));
-            grammar.CreateTerminal("D:d", Rex.Char('d'));
+            grammar.GetNonTerminal("A").AddProduction("A:a", grammar.CreateTerminal("a", Rex.Char('a')));
+            grammar.GetNonTerminal("A").AddProduction("A:aaa", grammar.CreateTerminal("aaa", Rex.Text("aaa")));
+            grammar.GetNonTerminal("B").AddProduction("B:b", grammar.CreateTerminal("b", Rex.Char('b')));
+            grammar.GetNonTerminal("C").AddProduction("C:c", grammar.CreateTerminal("c", Rex.Char('c')));
+            grammar.GetNonTerminal("D").AddProduction("D:d", grammar.CreateTerminal("d", Rex.Char('d')));
 
-            grammar.AddRule("CC", "C C");
-            grammar.AddRule("S:ABC", "A B C");
-            grammar.AddRule("S:AA", "A A");
-            grammar.AddRule("S:AC", "A [LB] C");
-            grammar.AddRule("S:AD", "A [NoLB] D");
-            grammar.AddRule("S:CC", "CC");
+            grammar.GetNonTerminal("CC").AddProduction("CC", "C C");
+            grammar.GetNonTerminal("S").AddProduction("S:ABC", "A B C");
+            grammar.GetNonTerminal("S").AddProduction("S:AA", "A A");
+            grammar.GetNonTerminal("S").AddProduction("S:AC", "A [LB] C");
+            grammar.GetNonTerminal("S").AddProduction("S:AD", "A [NoLB] D");
+            grammar.GetNonTerminal("S").AddProduction("S:CC", "CC");
 
             var reducer = ParserReducer.CreateReducer(typeof(TestParser), grammar);
             var metadata = grammar.CreateParserMetadata("S");

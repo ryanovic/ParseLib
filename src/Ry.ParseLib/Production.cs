@@ -8,7 +8,7 @@
     /// <summary>
     /// Represents a production.
     /// </summary>
-    public sealed class Production
+    public sealed class Production : IComparable<Production>
     {
         private readonly ProductionItem[] items;
         private Dictionary<Symbol, ParserAction> resolveOn;
@@ -108,6 +108,8 @@
             items.Add(new ProductionItem(Symbol.EndOfProduction, lineBreak));
             return items.ToArray();
         }
+
+        public int CompareTo(Production other) => Head == other.Head ? Name.CompareTo(other.Name) : Head.Name.CompareTo(other.Name);
 
         private readonly struct ProductionItem
         {

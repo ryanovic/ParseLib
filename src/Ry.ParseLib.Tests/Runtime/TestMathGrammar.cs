@@ -21,13 +21,13 @@
             CreateTerminal("num", Rex.Char(@"0-9").OneOrMore());
             CreateWhitespace("ws", Rex.Char(' '));
 
-            AddRule("expr:num", "num");
-            AddRule("expr:unary", "- expr");
-            AddRule("expr:add", "expr + expr");
-            AddRule("expr:sub", "expr - expr");
-            AddRule("expr:mul", "expr * expr");
-            AddRule("expr:div", "expr / expr");
-            AddRule("expr:group", "( expr )");
+            GetNonTerminal("expr").AddProduction("expr:num", "num");
+            GetNonTerminal("expr").AddProduction("expr:unary", "- expr");
+            GetNonTerminal("expr").AddProduction("expr:add", "expr + expr");
+            GetNonTerminal("expr").AddProduction("expr:sub", "expr - expr");
+            GetNonTerminal("expr").AddProduction("expr:mul", "expr * expr");
+            GetNonTerminal("expr").AddProduction("expr:div", "expr / expr");
+            GetNonTerminal("expr").AddProduction("expr:group", "( expr )");
         }
 
         public class MathConflictResolver : ConflictResolver

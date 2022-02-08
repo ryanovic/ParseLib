@@ -65,7 +65,7 @@
 
             protected void OnProductionCompleted(string production)
             {
-                Assert.True(TestMathGrammar.Grammar.ContainsRule(production));
+                Assert.True(TestMathGrammar.Grammar.GetNonTerminal("expr").ContainsProduction(production));
             }
         }
     }

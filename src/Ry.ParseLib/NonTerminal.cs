@@ -11,16 +11,20 @@
     /// </summary>
     public class NonTerminal : Symbol, IEnumerable<Production>
     {
+        private readonly Grammar grammar;
         private readonly Dictionary<string, Production> productions;
 
         public int Id { get; }
         public IEnumerable<string> Keys => productions.Keys;
         public Production this[string name] => productions[name];
 
-        public NonTerminal(string name, int id)
+        public NonTerminal(string name, int id, Grammar grammar)
             : base(name, SymbolType.NonTerminal)
         {
+            if (grammar == null) throw new NullReferenceException(nameof(grammar));
+
             this.Id = id;
+            this.grammar = grammar;
             this.productions = new Dictionary<string, Production>();
         }
 
@@ -38,14 +42,34 @@
             return productions[name];
         }
 
-        public Production AddProduction(string name, Symbol[] body)
+        public bool TryGetProduction(string name, out Production production)
+        {
+            return productions.TryGetValue(name, out production);
+        }
+
+        public ProductionBuilder AddProduction(string name, string body)
+        {
+            return AddProduction(name, grammar.ParseSymbols(body));
+        }
+
+        public ProductionBuilder AddProduction(string name, params object[] body)
+        {
+            return AddProduction(name, grammar.GetSymbols(body));
+        }
+
+        public ProductionBuilder AddProduction(string name, params Symbol[] body)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (body == null) throw new ArgumentNullException(nameof(body));
 
+            if (productions.ContainsKey(name))
+            {
+                throw new InvalidOperationException(Errors.ProductionDefined(name));
+            }
+
             var production = new Production(this, name, body);
             productions.Add(name, production);
-            return production;
+            return new ProductionBuilder(grammar, production);
         }
 
         public IEnumerator<Production> GetEnumerator()

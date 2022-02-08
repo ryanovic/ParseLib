@@ -15,10 +15,10 @@ namespace Ry.ParseLib.Emit
             grammar.CreateTerminals("a", "b", "c");
             grammar.CreateNonTerminals("A", "B", "C", "S");
 
-            grammar.AddRule("S:0", "A B C");
-            grammar.AddRule("A:0", "a");
-            grammar.AddRule("B:0", "b");
-            grammar.AddRule("C:0", "c");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A B C");
+            grammar.GetNonTerminal("A").AddProduction("A:0", "a");
+            grammar.GetNonTerminal("B").AddProduction("B:0", "b");
+            grammar.GetNonTerminal("C").AddProduction("C:0", "c");
 
             reducer = ParserReducer.CreateReducer(typeof(TestReducer), grammar);
         }
