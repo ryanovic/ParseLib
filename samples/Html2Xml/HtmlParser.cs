@@ -8,11 +8,10 @@
     using System.Xml;
     using Ry.ParseLib.Runtime;
 
-    // Custom parser base defines the logic necessary to reduce source to desired output format.
+    // A custom parser defines the logic necessary to reduce source to desired output format.
     public abstract class HtmlParser : TextParser
     {
         private readonly Stack<XmlElement> elements;
-        private XmlElement current;
 
         public XmlDocument Document { get; }
 
@@ -22,37 +21,24 @@
             Document = new XmlDocument();
         }
 
-        // Complete token handler with no return doesn't put any value on the data stack.
+        // Creates a comment node and put it on the stack.
         [CompleteToken("comment")]
-        protected void CreateComment() => AppendNode(Document.CreateComment(GetValue(4, Length - 7)));
+        protected XmlNode CreateComment() => Document.CreateComment(GetValue(4, Length - 7)); // Remove wrapping <!---->.
 
         [CompleteToken("text")]
-        protected void CreateText() => AppendNode(Document.CreateTextNode(WebUtility.HtmlDecode(GetValue())));
+        protected XmlNode CreateText() => Document.CreateTextNode(WebUtility.HtmlDecode(GetValue()));
 
         [CompleteToken("%script%")]
-        protected void CreateScript() => AppendNode(Document.CreateCDataSection(GetValue()));
+        protected XmlNode CreateScript() => Document.CreateCDataSection(GetValue());
 
+        // Creates a new element and put it on the stack.
         [CompleteToken("<script")]
         [CompleteToken("<tag")]
-        protected void CreateElement() => current = Document.CreateElement(GetValue(1));
+        protected XmlElement CreateElement() => Document.CreateElement(GetValue(start: 1));
 
         [CompleteToken("</tag")]
-        protected void VerifyElementTree()
-        {
-            var name = GetValue(2);
+        protected string CreateEndElementName() => GetValue(start: 2);
 
-            while (elements.Count > 0 && !elements.Peek().Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-            {
-                elements.Pop();
-            }
-
-            if (elements.Count == 0)
-            {
-                throw CreateParserException("unexpected close tag encountered.");
-            }
-        }
-
-        // Put lexeme value on the data stack.
         [CompleteToken("attr-name")]
         protected string CreateAttributeName() => GetValue();
 
@@ -60,22 +46,44 @@
         protected string CreateAttributeRawValue() => GetValue();
 
         [CompleteToken("attr-value-str")]
-        protected string CreateAttributeStringValue() => GetValue(1);
+        protected string CreateAttributeStringValue() => GetValue(start: 1, count: Length - 2);
 
-        // Production hander. Reads attribute name from the stack.
+        // Gets a pending element and appends an attribute with a specified name.
+        // Returns element back to the stack.
         [Reduce("attr:single")]
-        protected void AppendAttribute(string name) => current.SetAttribute(name, name);
+        protected XmlElement AppendAttribute(XmlElement current, string name)
+        {
+            current.SetAttribute(name, name);
+            return current;
+        }
 
-        // Reads both name and value from the stack.        
+        // Gets a pending element and appends an attribute with a specified name and value.
+        // Returns element back to the stack.
         [Reduce("attr:value-raw")]
         [Reduce("attr:value-str")]
-        protected void AppendAttribute(string name, string value) => current.SetAttribute(name, value);
+        protected XmlElement AppendAttribute(XmlElement current, string name, string value)
+        {
+            current.SetAttribute(name, value);
+            return current;
+        }
 
-        // Handles production prefix before it's reduced(without waiting the valid lookahead recognized).
-        [Handle("<tag attrs />")]
-        [Handle("<script attrs />")]
-        [Handle("<script attrs > %script% </script >")]
-        protected void AppendElement()
+        // Appends a newly recognized open tag to the document and makes it a new root.
+        [Reduce("node:tag-open")]
+        protected void BeginElement(XmlElement current)
+        {
+            AppendElement(current);
+
+            if (!current.Name.Equals("br", StringComparison.OrdinalIgnoreCase))
+            {
+                // Begin element.
+                elements.Push(current);
+            }
+        }
+
+        // Apends an element to the document if that's the root, or to the most recent open element.
+        [Reduce("node:tag-single")]
+        [Reduce("node:script-single")]
+        protected void AppendElement(XmlElement current)
         {
             if (Document.DocumentElement == null)
             {
@@ -87,21 +95,37 @@
             }
         }
 
-        [Handle("<tag attrs >")]
-        protected void BeginElement()
+        // Handles a script tag.
+        [Reduce("node:script-inline")]
+        protected void AppenScript(XmlElement current, XmlNode script)
         {
-            AppendElement();
-
-            if (!current.Name.Equals("br", StringComparison.OrdinalIgnoreCase))
-            {
-                // Begin element.
-                elements.Push(current);
-            }
+            current.AppendChild(script);
+            AppendElement(current);
         }
 
-        [Handle("</tag >")]
-        protected void CompleteElement()
+        // Adds a new node to the current root.
+        [Reduce("node:comment")]
+        [Reduce("node:text")]
+        protected void AppendNode(XmlNode node)
         {
+            GetCurrentRoot().AppendChild(node);
+        }
+
+        // Completes the current root.
+        [Reduce("node:tag-close")]
+        protected void CompleteElement(string name)
+        {
+            while (elements.Count > 0 && !elements.Peek().Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                // in case of a malformed HTML.
+                elements.Pop();
+            }
+
+            if (elements.Count == 0)
+            {
+                throw CreateParserException("Unexpected close tag encountered.");
+            }
+
             // Close element.
             elements.Pop();
         }
@@ -128,16 +152,11 @@
             Console.WriteLine($"production: {name}");
         }
 
-        private void AppendNode(XmlNode node)
-        {
-            GetElement().AppendChild(node);
-        }
-
-        private XmlElement GetElement()
+        private XmlElement GetCurrentRoot()
         {
             if (elements.Count == 0)
             {
-                throw new InvalidOperationException("Root element is missing.");
+                throw CreateParserException("Root element is missing.");
             }
 
             return elements.Peek();
