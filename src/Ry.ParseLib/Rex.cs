@@ -26,6 +26,16 @@
         /// </summary>
         public static RexNode Text(string text)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (text.Length == 0)
+            {
+                throw new ArgumentException(Errors.TerminalEmpty(), nameof(text));
+            }
+
             return text.Select(ch => Char(ch)).Aggregate((a, b) => new RexAnd(a, b));
         }
 

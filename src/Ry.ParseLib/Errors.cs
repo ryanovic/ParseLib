@@ -71,5 +71,7 @@
         public static string ProductionDefined(string name) => $"Production '{name}' is already defined in the grammer.";
 
         public static string SymbolDefined(string name) => $"Symbol '{name}' is already defined in the grammer.";
+
+        public static string TerminalEmpty() => "Can't generate a regular expression from an empty string.";
     }
 }
