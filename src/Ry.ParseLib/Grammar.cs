@@ -82,6 +82,11 @@
         public bool IsNewLine(Terminal terminal) => Whitespaces.TryGetValue(terminal, out var newLine) && newLine;
 
         /// <summary>
+        /// Gets a value indicating whether a specified terminal is a whitespace;
+        /// </summary>
+        public bool IsWhitespace(Terminal terminal) => Whitespaces.ContainsKey(terminal);
+
+        /// <summary>
         /// Gets a non-terminal by a specified name. Throws an exception if the non-terminal can't be resolved.
         /// </summary>
         public NonTerminal GetNonTerminal(string name)

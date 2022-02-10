@@ -9,6 +9,20 @@
 
         public T Data { get; set; }
 
+        public bool TryGetData(Symbol[] prefix, out T data)
+        {
+            var node = GetPrefix(prefix);
+
+            if (node == null)
+            {
+                data = default(T);
+                return false;
+            }
+
+            data = node.Data;
+            return true;
+        }
+
         public SymbolTrie<T> GetPrefix(Symbol[] prefix)
         {
             var node = this;

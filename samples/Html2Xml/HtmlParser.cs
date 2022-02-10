@@ -138,7 +138,7 @@
 
             if (name != "ws")
             {
-                Console.WriteLine($"token({name}): {GetValue()} [{from.Item1}:{from.Item2} - {to.Item1}:{to.Item2})");
+                Console.WriteLine($"token({name}) [{from.Item1}:{from.Item2} - {to.Item1}:{to.Item2}): {GetValue()}");
             }
             else
             {

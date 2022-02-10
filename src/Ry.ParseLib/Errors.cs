@@ -73,5 +73,9 @@
         public static string SymbolDefined(string name) => $"Symbol '{name}' is already defined in the grammer.";
 
         public static string TerminalEmpty() => "Can't generate a regular expression from an empty string.";
+
+        public static string PrefixHandlerReturnsValue() => "A prefix handler must not return a value.";
+
+        public static string WhitespaceHandlerReturnsValue() => "A whitespace token handler must not return a value.";
     }
 }

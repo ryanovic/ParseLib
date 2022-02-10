@@ -15,16 +15,18 @@ namespace Ry.ParseLib.Emit
         private readonly Type strParserType;
         private readonly Type seqParserType;
 
-        public Type CreateStringTestParser(ModuleBuilder module, IParserReducer reducer, ParserMetadata metadata)
+        public Type CreateStringTestParser(ModuleBuilder module, ParserMetadata metadata)
         {
             var target = module.DefineType("String_Parser", TypeAttributes.Public, typeof(StringTestParser));
+            var reducer = ParserReducer.CreateReducer(target, grammar);
             var builder = new ParserBuilder(target, reducer, metadata);
             return builder.Build();
         }
 
-        public Type CreateSequentialTestParser(ModuleBuilder module, IParserReducer reducer, ParserMetadata metadata)
+        public Type CreateSequentialTestParser(ModuleBuilder module, ParserMetadata metadata)
         {
             var target = module.DefineType("Sequential_Lexer", TypeAttributes.Public, typeof(SequentialTestParser));
+            var reducer = ParserReducer.CreateReducer(target, grammar);
             var builder = new SequentialParserBuilder(target, reducer, metadata);
             return builder.Build();
         }
@@ -60,11 +62,10 @@ namespace Ry.ParseLib.Emit
             grammar.GetNonTerminal("S").AddProduction("S:AD", "A [NoLB] D");
             grammar.GetNonTerminal("S").AddProduction("S:CC", "CC");
 
-            var reducer = ParserReducer.CreateReducer(typeof(TestParser), grammar);
             var metadata = grammar.CreateParserMetadata("S");
 
-            strParserType = CreateStringTestParser(module, reducer, metadata);
-            seqParserType = CreateSequentialTestParser(module, reducer, metadata);
+            strParserType = CreateStringTestParser(module, metadata);
+            seqParserType = CreateSequentialTestParser(module, metadata);
         }
 
         [Theory]
@@ -195,10 +196,9 @@ namespace Ry.ParseLib.Emit
             public Stack<string> Expected { get; } = new Stack<string>();
 
             [CompleteToken("ws")]
-            public string CompleteToken_ws()
+            public void CompleteToken_ws()
             {
                 Assert.Equal(' ', GetChar());
-                return "ignore";
             }
 
             [CompleteToken("lb")]
@@ -254,20 +254,20 @@ namespace Ry.ParseLib.Emit
             }
 
             [Reduce("B:b")]
-            public static string Reduce_B()
+            public string Reduce_B()
             {
                 return "B";
             }
 
             [Reduce("C:c")]
-            public static string Reduce_C(string c)
+            public string Reduce_C(string c)
             {
                 Assert.Equal("c", c);
                 return "C";
             }
 
             [Reduce("CC")]
-            public static string Reduce_CC(string C1, string C2)
+            public string Reduce_CC(string C1, string C2)
             {
                 Assert.Equal("C", C1);
                 Assert.Equal("C", C2);
@@ -287,7 +287,7 @@ namespace Ry.ParseLib.Emit
             }
 
             [Reduce("S:AC")]
-            public static string Reduce_S_AC(string A, string C)
+            public string Reduce_S_AC(string A, string C)
             {
                 Assert.Equal("A", A);
                 Assert.Equal("C", C);
@@ -304,20 +304,19 @@ namespace Ry.ParseLib.Emit
             }
 
             [Reduce("S:CC")]
-            public static string Reduce_S_CC(string CC)
+            public string Reduce_S_CC(string CC)
             {
                 Assert.Equal("CC", CC);
                 return "S";
             }
 
             [Reduce("S:AA")]
-            public static string Reduce_S_AA(string A1, string A2)
+            public string Reduce_S_AA(string A1, string A2)
             {
                 Assert.Equal("A", A1);
                 Assert.Equal("A", A2);
                 return "S";
             }
-
 
             [Handle("a")]
             public void Handle_a(string a)
@@ -340,13 +339,12 @@ namespace Ry.ParseLib.Emit
             }
 
             [Handle("A B C")]
-            public string Handle_ABC(string A, string B, string C)
+            public void Handle_ABC(string A, string B, string C)
             {
                 Assert.Equal("A", A);
                 Assert.Equal("B", B);
                 Assert.Equal("C", C);
                 Expected.Push("C");
-                return "ignore";
             }
 
             [Handle("A D")]

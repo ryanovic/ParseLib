@@ -16,11 +16,9 @@
     {
         private readonly Cell<bool> isLineBreak;
         private readonly ParserStack stateStack;
-        private readonly ParserStack dataStack;
         private readonly ParserMetadata metadata;
 
         private readonly MethodBuilder handleEosMthd;
-        private readonly MethodBuilder handleLexemeMthd;
         private readonly MethodBuilder handleTerminalMthd;
         private readonly MethodBuilder handleNonTerminalMthd;
         private readonly MethodBuilder getTerminalNameMthd;
@@ -59,8 +57,7 @@
             }
 
             this.handleEosMthd = target.DefineMethod("HandleEndOfSource", MethodAttributes.Private, typeof(void), Type.EmptyTypes);
-            this.handleLexemeMthd = target.DefineMethod("HandleLexeme", MethodAttributes.Private, typeof(void), new[] { typeof(int) });
-            this.handleTerminalMthd = target.DefineMethod("HandleTerminal", MethodAttributes.Private, typeof(void), new[] { typeof(int), typeof(object) });
+            this.handleTerminalMthd = target.DefineMethod("HandleTerminal", MethodAttributes.Private, typeof(void), new[] { typeof(int) });
             this.handleNonTerminalMthd = target.DefineMethod("HandleNonTerminal", MethodAttributes.Private, typeof(void), new[] { typeof(int) });
 
             this.getTerminalNameMthd = target.DefineMethod("GetTerminalName", MethodAttributes.Private, typeof(string), new[] { typeof(int) });
@@ -79,7 +76,6 @@
             // A cell that "remembers" if a line break was detected.
             this.isLineBreak = target.CreateCell<bool>("isNewLine");
             this.stateStack = new ParserStack(target.CreateCell("stateStack", typeof(List<int>)));
-            this.dataStack = new ParserStack(target.CreateCell("dataStack", typeof(List<object>)));
         }
 
         /// <summary>
@@ -88,7 +84,6 @@
         public virtual Type Build()
         {
             // Pipeline.            
-            BuildHandleLexemeMethod();
             BuildHandleTerminalMethod();
             BuildHandleNonTerminalMethod();
             BuildHandleEndOfSourceMethod();
@@ -115,7 +110,9 @@
         /// </summary>
         public virtual void CompleteToken(ILGenerator il, int tokenId)
         {
-            HandleLexeme(il, tokenId);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldc_I4, tokenId);
+            il.Emit(OpCodes.Call, handleTerminalMthd);
         }
 
         /// <summary>
@@ -125,7 +122,7 @@
         {
             il.Emit(OpCodes.Ldarg_0);
             tokenId.Load(il);
-            il.Emit(OpCodes.Call, handleLexemeMthd);
+            il.Emit(OpCodes.Call, handleTerminalMthd);
         }
 
         /// <summary>
@@ -162,8 +159,8 @@
         /// </summary>
         protected virtual void InitializeParser(ILGenerator il)
         {
+            Reducer.Initialize(il);
             stateStack.Initialize(il);
-            dataStack.Initialize(il);
             stateStack.Push(il, () => il.Emit(OpCodes.Ldc_I4_0));
             LexerState.Update(il, States[0].LexicalState.Id);
         }
@@ -176,10 +173,7 @@
         {
             if (onTokenCompleted != null)
             {
-                ExecuteMethod(il, onTokenCompleted, () =>
-                {
-                    il.Emit(OpCodes.Ldstr, terminal.Name);
-                });
+                il.Execute(onTokenCompleted, () => il.Emit(OpCodes.Ldstr, terminal.Name));
             }
         }
 
@@ -191,10 +185,7 @@
         {
             if (onProductionCompleted != null)
             {
-                ExecuteMethod(il, onProductionCompleted, () =>
-                {
-                    il.Emit(OpCodes.Ldstr, production.Name);
-                });
+                il.Execute(onProductionCompleted, () => il.Emit(OpCodes.Ldstr, production.Name));
             }
         }
 
@@ -274,47 +265,6 @@
             }
         }
 
-
-        /// <summary>
-        /// Generates a method that processes a specific token.
-        /// </summary>
-        /// <remarks>
-        /// <code>void HandleLexeme(int tokenId);</code>
-        /// </remarks>
-        private void BuildHandleLexemeMethod()
-        {
-            var il = handleLexemeMthd.GetILGenerator();
-            var labels = il.DefineLabels(Terminals.Length);
-
-            il.Emit(OpCodes.Ldarg_1); // token Id
-            il.Emit(OpCodes.Switch, labels);
-            il.ThrowArgumentOutOfRangeException("tokenId", Errors.TokenOutOfRange());
-            il.Mark(labels, i =>
-            {
-                HandleLexeme(il, i);
-                il.Emit(OpCodes.Ret);
-            });
-        }
-
-        private void HandleLexeme(ILGenerator il, int tokenId)
-        {
-            var terminal = Terminals[tokenId];
-            var method = Reducer.GetTokenReducer(terminal.Name);
-
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldc_I4, tokenId);
-
-            if (method == null || !ExecuteMethod(il, method, Array.Empty<ParameterInfo>()))
-            {
-                il.Emit(OpCodes.Ldnull);
-            }
-
-            OnTokenCompleted(il, terminal);
-
-            StartPosition.Update(il, () => CurrentPosition.Load(il));
-            il.Emit(OpCodes.Call, handleTerminalMthd);
-        }
-
         /// <summary>
         /// Generates a method that processes a terminal and updates the parser state accordingly.
         /// </summary>
@@ -382,10 +332,16 @@
         {
             if (state.ParserState.Actions.TryGetValue(terminal, out var action))
             {
+                if (action == ParserAction.Shift)
+                {
+                    CompleteToken(il, terminal);
+                }
+
                 HandleTerminal(il, state, terminal, action, start);
             }
             else
             {
+                CompleteToken(il, terminal);
                 HandleWhitespace(il, state, terminal);
             }
         }
@@ -395,13 +351,6 @@
             if (action == ParserAction.Shift)
             {
                 var next = state.ParserState.Shift[terminal];
-                var method = Reducer.GetTokenReducer(terminal.Name);
-
-                if (method != null && method.ReturnType != typeof(void))
-                {
-                    // Put a terminal value on the stack.
-                    dataStack.Push(il, () => il.Emit(OpCodes.Ldarg_2));
-                }
 
                 // Reset the value for line break cell and update the state.
                 isLineBreak.Update(il, false);
@@ -409,7 +358,7 @@
                 stateStack.Push(il, () => il.Emit(OpCodes.Ldc_I4, next.Id));
 
                 // Execute user handlers for a new state constructed.
-                HandlePrefixes(il, next);
+                Reducer.HandleState(il, next);
                 il.Emit(OpCodes.Ret);
             }
             else // ParserAction.Reduce
@@ -440,37 +389,18 @@
             il.Emit(OpCodes.Ret);
         }
 
+        private void CompleteToken(ILGenerator il, Terminal terminal)
+        {
+            OnTokenCompleted(il, terminal);
+            Reducer.HandleTerminal(il, terminal);
+            StartPosition.Update(il, CurrentPosition);
+        }
+
         private void HandleProduction(ILGenerator il, Production production)
         {
-            var method = Reducer.GetProductionReducer(production.Name);
-
-            if (method != null)
-            {
-                var parameters = method.GetParameters();
-
-                if (method.ReturnType != typeof(void))
-                {
-                    if (parameters.Length == 0)
-                    {
-                        // Push an output onto the value stack.
-                        dataStack.Push(il, () => ExecuteMethod(il, method, parameters));
-                    }
-                    else
-                    {
-                        // Replace the top parameters with an output.
-                        dataStack.ReplaceTop(il, parameters.Length, () => ExecuteMethod(il, method, parameters));
-                    }
-                }
-                else
-                {
-                    // Remove parameters from the value stack.
-                    ExecuteMethod(il, method, parameters);
-                    dataStack.RemoveTop(il, parameters.Length);
-                }
-            }
-
-            stateStack.RemoveTop(il, production.Size);
             OnProductionCompleted(il, production);
+            Reducer.HandleProduction(il, production);
+            stateStack.RemoveTop(il, production.Size);
 
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldc_I4, ((NonTerminal)production.Head).Id);
@@ -551,37 +481,16 @@
                 il.Emit(OpCodes.Brfalse, noLineBreak);
 
                 stateStack.Push(il, () => il.Emit(OpCodes.Ldc_I4, nextLB.Id));
-                HandlePrefixes(il, nextLB);
+                Reducer.HandleState(il, nextLB);
                 il.Emit(OpCodes.Ret);
 
                 il.MarkLabel(noLineBreak);
             }
 
             stateStack.Push(il, () => il.Emit(OpCodes.Ldc_I4, next.Id));
-            HandlePrefixes(il, next);
+            Reducer.HandleState(il, next);
             il.Emit(OpCodes.Ret);
         }
-
-        private void HandlePrefixes(ILGenerator il, ParserState state)
-        {
-            var set = new HashSet<MethodInfo>();
-
-            // Iterate through the state core items and check if any handler is defined for the prefix.
-            foreach (var item in state.Core)
-            {
-                var method = Reducer.GetPrefixHandler(item.GetPrefix());
-
-                if (method != null && set.Add(method))
-                {
-                    // Remove an output from the evaluation stack if any.
-                    if (ExecuteMethod(il, method))
-                    {
-                        il.Emit(OpCodes.Pop);
-                    }
-                }
-            }
-        }
-
 
         /// <remarks>
         /// <code>string GetTerminalName(int terminalId);</code>
@@ -728,55 +637,9 @@
             il.Emit(OpCodes.Beq_S, label);
             il.ThrowInvalidOperationException(Errors.ParserNotCompleted());
 
-            label = il.MarkAndDefine(label);
-            dataStack.GetCount(il);
-            il.Emit(OpCodes.Brtrue, label);
-            il.Emit(OpCodes.Ldnull);
-            il.Emit(OpCodes.Ret);
-
             il.MarkLabel(label);
-            dataStack.Peek(il, 0);
+            Reducer.LoadResult(il);
             il.Emit(OpCodes.Ret);
-        }
-
-        private bool ExecuteMethod(ILGenerator il, MethodInfo method)
-        {
-            return ExecuteMethod(il, method, method.GetParameters());
-        }
-
-        private bool ExecuteMethod(ILGenerator il, MethodInfo method, ParameterInfo[] parameters)
-        {
-            ExecuteMethod(il, method, () =>
-            {
-                for (int i = 1; i <= parameters.Length; i++)
-                {
-                    dataStack.Peek(il, parameters.Length - i);
-                    il.ConvertFromObject(parameters[i - 1].ParameterType);
-                }
-            });
-
-            if (method.ReturnType != typeof(void))
-            {
-                il.ConvertToObject(method.ReturnType);
-                return true;
-            }
-
-            return false;
-        }
-
-        private void ExecuteMethod(ILGenerator il, MethodInfo method, Action loadArgs)
-        {
-            if (method.IsStatic)
-            {
-                loadArgs();
-                il.Emit(OpCodes.Call, method);
-            }
-            else
-            {
-                il.Emit(OpCodes.Ldarg_0);
-                loadArgs();
-                il.Emit(OpCodes.Callvirt, method);
-            }
         }
     }
 }

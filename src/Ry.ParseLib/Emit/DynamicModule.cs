@@ -16,7 +16,7 @@
         public static Type CreateStringParser(Type parent, Grammar grammar, string goal)
         {
             var target = DefineType(parent);
-            var reducer = ParserReducer.CreateReducer(parent, grammar);
+            var reducer = ParserReducer.CreateReducer(target, grammar);
             var builder = new ParserBuilder(target, reducer, grammar, goal);
             return builder.Build();
         }
@@ -24,7 +24,7 @@
         public static Type CreateTextParser(Type parent, Grammar grammar, string goal)
         {
             var target = DefineType(parent);
-            var reducer = ParserReducer.CreateReducer(parent, grammar);
+            var reducer = ParserReducer.CreateReducer(target, grammar);
             var builder = new SequentialParserBuilder(target, reducer, grammar, goal);
             return builder.Build();
         }

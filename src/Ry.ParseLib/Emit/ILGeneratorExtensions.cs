@@ -1,6 +1,7 @@
 ﻿namespace Ry.ParseLib.Emit
 {
     using System;
+    using System.Reflection;
     using System.Reflection.Emit;
 
     public static class ILGeneratorExtensions
@@ -193,6 +194,32 @@
         internal static void LoadFalse(this ILGenerator il)
         {
             il.Emit(OpCodes.Ldc_I4_0);
+        }
+
+        /// <summary>
+        /// Executes a specified method with no parameters.
+        /// </summary>
+        internal static void Execute(this ILGenerator il, MethodInfo method)
+        {
+            Execute(il, method, () => { });
+        }
+
+        /// <summary>
+        /// Executes a specified method.
+        /// </summary>
+        internal static void Execute(this ILGenerator il, MethodInfo method, Action loadArgs)
+        {
+            if (method.IsStatic)
+            {
+                loadArgs();
+                il.Emit(OpCodes.Call, method);
+            }
+            else
+            {
+                il.Emit(OpCodes.Ldarg_0);
+                loadArgs();
+                il.Emit(OpCodes.Callvirt, method);
+            }
         }
 
         /// <summary>

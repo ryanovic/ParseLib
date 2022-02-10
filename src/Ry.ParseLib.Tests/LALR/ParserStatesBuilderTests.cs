@@ -153,6 +153,25 @@ namespace Ry.ParseLib.LALR
             Assert.Equal(expected, state.Actions[grammar[lookahead]]);
         }
 
+        [Fact]
+        public void Test()
+        {
+            var grammar = new Grammar();
+
+            grammar.CreateTerminals("a", "b", "c");
+            grammar.CreateNonTerminals("S", "A", "B", "C");
+
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");            
+            grammar.GetNonTerminal("A").AddProduction("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
+            grammar.GetNonTerminal("B").AddProduction("B", "b");
+
+            var states = grammar.CreateParserStates("S");
+            var state = states[0].GetState(grammar.ParseSymbols("A"));
+
+            //Assert.NotNull(state);
+            //Assert.Equal(expected, state.Actions[grammar[lookahead]]);
+        }
+
         [Theory]
         [InlineData("a", "c")]
         [InlineData("a [LB]", "b")]
