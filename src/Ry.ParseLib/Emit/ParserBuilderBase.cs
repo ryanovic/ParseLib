@@ -332,11 +332,6 @@
         {
             if (state.ParserState.Actions.TryGetValue(terminal, out var action))
             {
-                if (action == ParserAction.Shift)
-                {
-                    CompleteToken(il, terminal);
-                }
-
                 HandleTerminal(il, state, terminal, action, start);
             }
             else
@@ -350,6 +345,7 @@
         {
             if (action == ParserAction.Shift)
             {
+                CompleteToken(il, terminal);
                 var next = state.ParserState.Shift[terminal];
 
                 // Reset the value for line break cell and update the state.
