@@ -99,7 +99,7 @@
 
         protected override string GetValue() => GetValue(0, Length);
 
-        protected ReadOnlySpan<char> GetSpan(int start, int count)
+        protected Span<char> GetSpan(int start, int count)
         {
             if (start < 0) throw new ArgumentOutOfRangeException(nameof(start));
             if (count < 0 || count > Length - start) throw new ArgumentOutOfRangeException(nameof(count));
@@ -107,11 +107,16 @@
             return count == 0 ? null : buffer.AsSpan(StartPosition - bufferPosition + start, count);
         }
 
-        protected ReadOnlySpan<char> GetSpan(int start) => GetSpan(start, Length - start);
+        protected Span<char> GetSpan(int start) => GetSpan(start, Length - start);
 
-        protected ReadOnlySpan<char> GetSpan() => GetSpan(0, Length);
+        protected Span<char> GetSpan() => GetSpan(0, Length);
 
-        private int ProcessBuffer(ReadOnlySpan<char> span)
+        /// <summary>
+        /// Processes lexemes within a specified buffer.
+        /// </summary>
+        /// <param name="span">A char span that represents the buffer.</param>
+        /// <returns>Length of an unfinished lexeme in the beginning of the buffer.</returns>
+        protected virtual int ProcessBuffer(Span<char> span)
         {
             lines.Accept(bufferPosition, span);
             Read(bufferPosition, span, isFinal: false);
