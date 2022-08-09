@@ -15,7 +15,7 @@
 
         public virtual ParserAction ResolveShiftConflict(Symbol symbol, Production production)
         {
-            if (production.ResolveOn != null && production.ResolveOn.TryGetValue(symbol, out var action))
+            if (production.ReduceConflictActions != null && production.ReduceConflictActions.TryGetValue(symbol, out var action))
             {
                 return action;
             }

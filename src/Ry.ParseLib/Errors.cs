@@ -54,7 +54,9 @@
 
         public static string NullableExpression() => "Terminal requires non-nullable regular expression to initialize.";
 
-        public static string SymbolNotAllowed(string name) => $"{name} is not allowed in the production body.";
+        public static string SymbolNotAllowedInProduction(string name) => $"{name} is not allowed in the production body.";
+
+        public static string SymbolNotAllowed(string name) => $"{name} is not allowed.";
 
         public static string LineBreakForbidden() => "Can't use [LB] and [NoLB] simultaneously.";
 

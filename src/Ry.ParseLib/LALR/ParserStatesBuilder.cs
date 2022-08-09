@@ -245,13 +245,13 @@
 
         private static bool IsLineBreakSensitiveOnReduce(Production production)
         {
-            if (production.Lookaheads == null)
+            if (production.AllowList == null)
             {
                 return false;
             }
 
-            return production.Lookaheads.Contains(Symbol.LineBreak)
-                || production.Lookaheads.Contains(Symbol.NoLineBreak);
+            return production.AllowList.Contains(Symbol.LineBreak)
+                || production.AllowList.Contains(Symbol.NoLineBreak);
         }
     }
 }

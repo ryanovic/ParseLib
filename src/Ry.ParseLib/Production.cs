@@ -11,8 +11,9 @@
     public sealed class Production : IComparable<Production>
     {
         private readonly ProductionItem[] items;
-        private Dictionary<Symbol, ParserAction> resolveOn;
-        private HashSet<Symbol> lookaheads;
+        private Dictionary<Symbol, ParserAction> reduceConflictActions;
+        private HashSet<Symbol> allowList;
+        private HashSet<Symbol> denyList;
 
         public Symbol Head { get; }
         public string Name { get; }
@@ -20,14 +21,19 @@
         public Symbol this[int index] => items[index].Symbol;
 
         /// <summary>
-        /// Gets a set of lookaheads allowed for the production. If the set is not specified, then any valid lookahed is allowed.
+        /// Gets a set of lookaheads that are only allowed for the production. If the set is not specified, then any valid lookahead, except ones from the denied list, is allowed.
         /// </summary>
-        public ISet<Symbol> Lookaheads => lookaheads;
+        public ISet<Symbol> AllowList => allowList;
 
         /// <summary>
-        /// Gets a set of rules defining how a shift-reduce conflict should be resolved.
+        /// Gets a set of symbols that can't be selected as a lookahead for the production.
         /// </summary>
-        public IDictionary<Symbol, ParserAction> ResolveOn => resolveOn;
+        public ISet<Symbol> DenyList => denyList;
+
+        /// <summary>
+        /// Gets a set of inline rules defining how a shift-reduce conflict should be resolved for the production.
+        /// </summary>
+        public IDictionary<Symbol, ParserAction> ReduceConflictActions => reduceConflictActions;
 
         public Production(Symbol head, string name, Symbol[] symbols)
         {
@@ -44,15 +50,34 @@
         /// <summary>
         /// Sets a set of lookaheads on which a target production can be reduced. The set may contain the [LB] and [NoLB] symbols.
         /// </summary>
-        public void OverrideLookaheads(params Symbol[] symbols)
+
+        public void AllowOn(params Symbol[] symbols)
         {
-            if (lookaheads == null)
+            SymbolGuard.Verify(symbols, SymbolType.LineBreak, SymbolType.NoLineBreak, SymbolType.EndOfSource, SymbolType.Terminal);
+
+            if (allowList == null)
             {
-                lookaheads = new HashSet<Symbol>(symbols);
+                allowList = new HashSet<Symbol>(symbols);
                 return;
             }
 
-            lookaheads.UnionWith(symbols);
+            allowList.UnionWith(symbols);
+        }
+
+        /// <summary>
+        /// Sets a set of lookaheads on which a target production can NOT be reduced. May contain terminals and $EOS lookaheads.
+        /// </summary>
+        public void DenyOn(params Symbol[] symbols)
+        {
+            SymbolGuard.Verify(symbols, SymbolType.EndOfSource, SymbolType.Terminal);
+
+            if (denyList == null)
+            {
+                denyList = new HashSet<Symbol>(symbols);
+                return;
+            }
+
+            denyList.UnionWith(symbols);
         }
 
         /// <summary>
@@ -60,12 +85,14 @@
         /// </summary>
         public void ReduceOn(Symbol symbol)
         {
-            if (resolveOn == null)
+            SymbolGuard.Verify(symbol, SymbolType.Terminal);
+
+            if (reduceConflictActions == null)
             {
-                resolveOn = new Dictionary<Symbol, ParserAction>();
+                reduceConflictActions = new Dictionary<Symbol, ParserAction>();
             }
 
-            resolveOn.Add(symbol, ParserAction.Reduce);
+            reduceConflictActions.Add(symbol, ParserAction.Reduce);
         }
 
         /// <summary>
@@ -73,12 +100,14 @@
         /// </summary>
         public void ShiftOn(Symbol symbol)
         {
-            if (resolveOn == null)
+            SymbolGuard.Verify(symbol, SymbolType.Terminal);
+
+            if (reduceConflictActions == null)
             {
-                resolveOn = new Dictionary<Symbol, ParserAction>();
+                reduceConflictActions = new Dictionary<Symbol, ParserAction>();
             }
 
-            resolveOn.Add(symbol, ParserAction.Shift);
+            reduceConflictActions.Add(symbol, ParserAction.Shift);
         }
 
         public override string ToString() => Name;
@@ -129,6 +158,19 @@
                 }
             }
 
+            public override string ToString()
+            {
+                switch (LineBreak)
+                {
+                    case LineBreakModifier.LineBreak:
+                        return "[LB] " + Symbol.Name;
+                    case LineBreakModifier.NoLineBreak:
+                        return "[NoLB] " + Symbol.Name;
+                    default:
+                        return Symbol.Name;
+                }
+            }
+
             private static void CheckSymbol(Symbol symbol)
             {
                 if (symbol == null) throw new ArgumentNullException(nameof(symbol));
@@ -140,7 +182,7 @@
                     case SymbolType.EndOfProduction:
                         break;
                     default:
-                        throw new InvalidOperationException(Errors.SymbolNotAllowed(symbol.Name));
+                        throw new InvalidOperationException(Errors.SymbolNotAllowedInProduction(symbol.Name));
                 }
             }
         }

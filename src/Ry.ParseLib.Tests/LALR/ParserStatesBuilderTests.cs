@@ -133,7 +133,8 @@ namespace Ry.ParseLib.LALR
         [Theory]
         [InlineData("a", "b", ParserAction.Reduce)]
         [InlineData("a [LB]", "c", ParserAction.Reduce)]
-        public void Creates_Actions_For_Grammar_With_LookaheadsOverride(string prefix, string lookahead, ParserAction expected)
+        [InlineData("A b", "$EOS", ParserAction.Reduce)]
+        public void Creates_Actions_For_Grammar_With_LookaheadsAllowOverride(string prefix, string lookahead, ParserAction expected)
         {
             var grammar = new Grammar();
 
@@ -142,7 +143,7 @@ namespace Ry.ParseLib.LALR
 
             grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
             grammar.GetNonTerminal("S").AddProduction("S:1", "A C");
-            grammar.GetNonTerminal("A").AddProduction("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
+            grammar.GetNonTerminal("A").AddProduction("A", "a").AllowOn(Symbol.LineBreak, "b");
             grammar.GetNonTerminal("B").AddProduction("B", "b");
             grammar.GetNonTerminal("C").AddProduction("C", "c");
 
@@ -153,6 +154,29 @@ namespace Ry.ParseLib.LALR
             Assert.Equal(expected, state.Actions[grammar[lookahead]]);
         }
 
+        [Theory]
+        [InlineData("a", "c")]
+        [InlineData("A b", "$EOS")]
+        public void Creates_Actions_For_Grammar_With_LookaheadsDenyOverride(string prefix, string lookahead)
+        {
+            var grammar = new Grammar();
+
+            grammar.CreateTerminals("a", "b", "c");
+            grammar.CreateNonTerminals("S", "A", "B", "C");
+
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
+            grammar.GetNonTerminal("S").AddProduction("S:1", "A C");
+            grammar.GetNonTerminal("A").AddProduction("A", "a").AllowOn(Symbol.LineBreak, "b");
+            grammar.GetNonTerminal("B").AddProduction("B", "b").DenyOn(Symbol.EndOfSource);
+            grammar.GetNonTerminal("C").AddProduction("C", "c");
+
+            var states = grammar.CreateParserStates("S");
+            var state = states[0].GetState(grammar.ParseSymbols(prefix));
+
+            Assert.NotNull(state);
+            Assert.False(state.Actions.ContainsKey(grammar[lookahead]));
+        }
+
         [Fact]
         public void Test()
         {
@@ -161,8 +185,8 @@ namespace Ry.ParseLib.LALR
             grammar.CreateTerminals("a", "b", "c");
             grammar.CreateNonTerminals("S", "A", "B", "C");
 
-            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");            
-            grammar.GetNonTerminal("A").AddProduction("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
+            grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
+            grammar.GetNonTerminal("A").AddProduction("A", "a").AllowOn(Symbol.LineBreak, "b");
             grammar.GetNonTerminal("B").AddProduction("B", "b");
 
             var states = grammar.CreateParserStates("S");
@@ -184,7 +208,7 @@ namespace Ry.ParseLib.LALR
 
             grammar.GetNonTerminal("S").AddProduction("S:0", "A [NoLB] B");
             grammar.GetNonTerminal("S").AddProduction("S:1", "A C");
-            grammar.GetNonTerminal("A").AddProduction("A", "a").OverrideLookaheads(Symbol.LineBreak, "b");
+            grammar.GetNonTerminal("A").AddProduction("A", "a").AllowOn(Symbol.LineBreak, "b");
             grammar.GetNonTerminal("B").AddProduction("B", "b");
             grammar.GetNonTerminal("C").AddProduction("C", "c");
 

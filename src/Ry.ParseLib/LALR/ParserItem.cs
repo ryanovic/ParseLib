@@ -83,6 +83,13 @@
             return new ParserItem(Production, Index + 1);
         }
 
+        public override string ToString()
+        {
+            return Symbol.Type == SymbolType.EndOfProduction
+                ? $"{Production.Name}"
+                : $"{Production.Name} {Symbol.Name}";
+        }
+
         public bool Equals(ParserItem other)
         {
             return Index == other.Index && Production == other.Production;

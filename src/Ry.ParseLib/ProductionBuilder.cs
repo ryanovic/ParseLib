@@ -50,11 +50,22 @@
         /// <summary>
         /// Sets a set of lookaheads on which a target production can be reduced. The set may contain the [LB] and [NoLB] symbols.
         /// </summary>
-        public ProductionBuilder OverrideLookaheads(params object[] lookaheads)
+        public ProductionBuilder AllowOn(params object[] lookaheads)
         {
             if (lookaheads == null) throw new ArgumentNullException(nameof(lookaheads));
 
-            Production.OverrideLookaheads(Grammar.GetSymbols(lookaheads));
+            Production.AllowOn(Grammar.GetSymbols(lookaheads));
+            return this;
+        }
+
+        /// <summary>
+        /// Sets a set of lookaheads on which a target production can NOT be reduced.
+        /// </summary>
+        public ProductionBuilder DenyOn(params object[] lookaheads)
+        {
+            if (lookaheads == null) throw new ArgumentNullException(nameof(lookaheads));
+
+            Production.DenyOn(Grammar.GetSymbols(lookaheads));
             return this;
         }
     }

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
 
     /// <summary>
     /// Generates lookaheads for the parser states. 
@@ -75,24 +76,25 @@
 
             if ((final.LineBreak | next.LineBreak) != LineBreakModifier.Forbidden)
             {
-                var filter = production.Lookaheads;
+                var deny = production.DenyList;
+                var allow = production.AllowList;
 
-                if (filter != null)
+                if (allow != null)
                 {
-                    if ((final.LineBreak == LineBreakModifier.LineBreak && filter.Contains(Symbol.LineBreak))
-                        || (final.LineBreak == LineBreakModifier.NoLineBreak && filter.Contains(Symbol.NoLineBreak)))
+                    if ((final.LineBreak == LineBreakModifier.LineBreak && allow.Contains(Symbol.LineBreak))
+                        || (final.LineBreak == LineBreakModifier.NoLineBreak && allow.Contains(Symbol.NoLineBreak)))
                     {
-                        filter = null;
+                        allow = null;
                     }
                 }
 
-                updated |= GenerateLookaheads(next, production, final, filter, firstRound);
+                updated |= GenerateLookaheads(next, production, final, deny, allow, firstRound);
             }
 
             return updated;
         }
 
-        private bool GenerateLookaheads(ParserState next, Production production, ParserState final, ISet<Symbol> filter, bool firstRound)
+        private bool GenerateLookaheads(ParserState next, Production production, ParserState final, ISet<Symbol> deny, ISet<Symbol> allow, bool firstRound)
         {
             var updated = false;
 
@@ -100,7 +102,7 @@
             {
                 foreach (var symbol in next.Shift.Keys.OfType<Terminal>())
                 {
-                    if (filter == null || filter.Contains(symbol))
+                    if ((deny == null || !deny.Contains(symbol)) && (allow == null || allow.Contains(symbol)))
                     {
                         updated |= CreateReduceRule(final, production, symbol);
                     }
@@ -109,7 +111,7 @@
 
             foreach (var symbol in next.Reduce.Keys)
             {
-                if (filter == null || filter.Contains(symbol))
+                if ((deny == null || !deny.Contains(symbol)) && (allow == null || allow.Contains(symbol)))
                 {
                     updated |= CreateReduceRule(final, production, symbol);
                 }
