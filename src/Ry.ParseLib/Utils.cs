@@ -48,5 +48,15 @@
             list[list.Length - 1] = item;
             return updated;
         }
+
+        internal static void SafeAdd<T>(ref List<T> list, T item)
+        {
+            if (list == null)
+            {
+                list = new List<T>();
+            }
+
+            list.Add(item);
+        }
     }
 }

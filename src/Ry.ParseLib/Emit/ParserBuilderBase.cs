@@ -20,13 +20,18 @@
 
         private readonly MethodBuilder handleEosMthd;
         private readonly MethodBuilder handleTerminalMthd;
-        private readonly MethodBuilder handleNonTerminalMthd;
         private readonly MethodBuilder getTerminalNameMthd;
         private readonly MethodBuilder getNonTerminalNameMthd;
         private readonly MethodBuilder getParserStateMthd;
 
         private readonly MethodInfo onTokenCompleted;
         private readonly MethodInfo onProductionCompleted;
+
+        private readonly List<int>[] statesByTerminal;
+        private readonly List<int>[] statesByNonTerminal;
+
+        private readonly MethodBuilder[] handleTerminalByIdMthd;
+        private readonly MethodBuilder[] handleNonTerminalByIdMthd;
 
         public Grammar Grammar => metadata.Grammar;
         public ILexicalStates LexicalStates => metadata.LexicalStates;
@@ -58,7 +63,6 @@
 
             this.handleEosMthd = target.DefineMethod("HandleEndOfSource", MethodAttributes.Private, typeof(void), Type.EmptyTypes);
             this.handleTerminalMthd = target.DefineMethod("HandleTerminal", MethodAttributes.Private, typeof(void), new[] { typeof(int) });
-            this.handleNonTerminalMthd = target.DefineMethod("HandleNonTerminal", MethodAttributes.Private, typeof(void), new[] { typeof(int) });
 
             this.getTerminalNameMthd = target.DefineMethod("GetTerminalName", MethodAttributes.Private, typeof(string), new[] { typeof(int) });
             this.getNonTerminalNameMthd = target.DefineMethod("GetNonTerminalName", MethodAttributes.Private, typeof(string), new[] { typeof(int) });
@@ -76,6 +80,25 @@
             // A cell that "remembers" if a line break was detected.
             this.isLineBreak = target.CreateCell<bool>("isNewLine");
             this.stateStack = new ParserStack(target.CreateCell("stateStack", typeof(List<int>)));
+
+            this.handleTerminalByIdMthd = new MethodBuilder[metadata.Terminals.Length];
+            this.handleNonTerminalByIdMthd = new MethodBuilder[metadata.NonTerminals.Length];
+
+            this.statesByTerminal = new List<int>[metadata.Terminals.Length];
+            this.statesByNonTerminal = new List<int>[metadata.NonTerminals.Length];
+
+            foreach (var state in metadata.States)
+            {
+                foreach (var symbol in state.Terminals)
+                {
+                    Utils.SafeAdd(ref statesByTerminal[symbol.Id], state.ParserState.Id);
+                }
+
+                foreach (var symbol in state.NonTerminals)
+                {
+                    Utils.SafeAdd(ref statesByNonTerminal[symbol.Id], state.ParserState.Id);
+                }
+            }
         }
 
         /// <summary>
@@ -84,8 +107,9 @@
         public virtual Type Build()
         {
             // Pipeline.            
+            BuildHandleNonTerminalByIdMethods();
+            BuildHandleTerminalByIdMethods();
             BuildHandleTerminalMethod();
-            BuildHandleNonTerminalMethod();
             BuildHandleEndOfSourceMethod();
 
             // Properties.
@@ -111,8 +135,7 @@
         public virtual void CompleteToken(ILGenerator il, int tokenId)
         {
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldc_I4, tokenId);
-            il.Emit(OpCodes.Call, handleTerminalMthd);
+            il.Emit(OpCodes.Call, handleTerminalByIdMthd[tokenId]);
         }
 
         /// <summary>
@@ -274,43 +297,61 @@
         private void BuildHandleTerminalMethod()
         {
             var il = handleTerminalMthd.GetILGenerator();
-            var start = il.DefineLabel();
-            var labels = il.DefineLabels(States.Length);
+            var labels = il.DefineLabels(Terminals.Length);
 
-            // Read most recent state.
-            il.MarkLabel(start);
-            stateStack.Peek(il, 0);
-
+            il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Switch, labels);
-            il.ThrowInvalidOperationException(Errors.InvalidState());
-            il.Mark(labels, i => HandleTerminals(il, States[i], start));
+            il.ThrowInvalidOperationException(Errors.InvalidToken());
+            il.Mark(labels, i =>
+            {
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Call, handleTerminalByIdMthd[i]);
+                il.Emit(OpCodes.Ret);
+            });
         }
 
-        private void HandleTerminals(ILGenerator il, StateMetadata state, Label start)
+        private void BuildHandleTerminalByIdMethods()
         {
-            // Perform a binary search over the list of valid terminals.
-            (var intervals, var defaultLabel) = SearchInterval.CreateIntervals(il, state.Terminals.Length);
+            foreach (var symbol in Terminals)
+            {
+                BuildHandleTerminalByIdMethod(symbol);
+            }
+        }
+
+        private void BuildHandleTerminalByIdMethod(Terminal terminal)
+        {
+            var mthd = handleTerminalByIdMthd[terminal.Id] = Target.DefineMethod($"HandleTerminal_{terminal.Id}", MethodAttributes.Private, typeof(void), Type.EmptyTypes);
+            var il = mthd.GetILGenerator();
+            var start = il.DefineLabel();
+            var currentState = il.CreateCell<int>();
+            var terminalStates = statesByTerminal[terminal.Id];
+
+            il.MarkLabel(start);
+            currentState.Update(il, () => stateStack.Peek(il, 0));
+
+            // Perform a binary search over the list of valid states.
+            (var intervals, var defaultLabel) = SearchInterval.CreateIntervals(il, terminalStates == null ? 0 : terminalStates.Count);
 
             foreach (var interval in intervals)
             {
-                var terminal = state.Terminals[interval.Middle];
+                var state = metadata.States[terminalStates[interval.Middle]];
 
                 il.MarkLabel(interval.Label);
 
                 if (interval.Low == interval.Middle)
                 {
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Ldc_I4, terminal.Id);
+                    currentState.Load(il);
+                    il.Emit(OpCodes.Ldc_I4, state.ParserState.Id);
                     il.Emit(OpCodes.Bne_Un, interval.IsSingle ? defaultLabel : interval.Right);
                 }
                 else
                 {
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Ldc_I4, terminal.Id);
+                    currentState.Load(il);
+                    il.Emit(OpCodes.Ldc_I4, state.ParserState.Id);
                     il.Emit(OpCodes.Blt, interval.Left);
 
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Ldc_I4, terminal.Id);
+                    currentState.Load(il);
+                    il.Emit(OpCodes.Ldc_I4, state.ParserState.Id);
                     il.Emit(OpCodes.Bgt, interval.Right);
                 }
 
@@ -318,14 +359,7 @@
             }
 
             il.MarkLabel(defaultLabel);
-            ThrowParserException(il, () =>
-            {
-                il.Emit(OpCodes.Ldstr, Errors.InvalidTerminal("{0}"));
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Call, getTerminalNameMthd);
-                il.Emit(OpCodes.Call, ReflectionInfo.String_Format);
-            });
+            ThrowParserException(il, () => { il.Emit(OpCodes.Ldstr, Errors.InvalidTerminal(terminal.Name)); });
         }
 
         private void HandleTerminal(ILGenerator il, StateMetadata state, Terminal terminal, Label start)
@@ -399,69 +433,59 @@
             stateStack.RemoveTop(il, production.Size);
 
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldc_I4, ((NonTerminal)production.Head).Id);
-            il.Emit(OpCodes.Call, handleNonTerminalMthd);
+            il.Emit(OpCodes.Call, handleNonTerminalByIdMthd[((NonTerminal)production.Head).Id]);
         }
 
-        /// <summary>
-        /// Generates a method that processes a non-terminal and updates the parser state accordingly.
-        /// </summary>
-        /// <remarks>
-        /// <code>void HandleNonTerminal(int nonTerminalId);</code>
-        /// </remarks>
-        private void BuildHandleNonTerminalMethod()
+        private void BuildHandleNonTerminalByIdMethods()
         {
-            var il = handleNonTerminalMthd.GetILGenerator();
-            var labels = il.DefineLabels(States.Length);
-
-            // Read most recent state.
-            stateStack.Peek(il, 0);
-            il.Emit(OpCodes.Switch, labels);
-            il.ThrowInvalidOperationException(Errors.InvalidState());
-            il.Mark(labels, i => HandleNonTerminals(il, States[i]));
+            foreach (var symbol in NonTerminals)
+            {
+                BuildHandleNonTerminalByIdMethod(symbol);
+            }
         }
 
-        private void HandleNonTerminals(ILGenerator il, StateMetadata state)
+        private void BuildHandleNonTerminalByIdMethod(NonTerminal nonTerminal)
         {
-            // Perform a binary search over the list of valid non-terminals.
-            (var intervals, var defaultLabel) = SearchInterval.CreateIntervals(il, state.NonTerminals.Length);
+            var mthd = handleNonTerminalByIdMthd[nonTerminal.Id] = Target.DefineMethod($"HandleNonTerminal_{nonTerminal.Id}", MethodAttributes.Private, typeof(void), Type.EmptyTypes);
+            var il = mthd.GetILGenerator();
+            var start = il.DefineLabel();
+            var currentState = il.CreateCell<int>();
+            var nonTerminalStates = statesByNonTerminal[nonTerminal.Id];
+
+            il.MarkLabel(start);
+            currentState.Update(il, () => stateStack.Peek(il, 0));
+
+            // Perform a binary search over the list of valid states.
+            (var intervals, var defaultLabel) = SearchInterval.CreateIntervals(il, nonTerminalStates == null ? 0 : nonTerminalStates.Count);
 
             foreach (var interval in intervals)
             {
-                var nonTerminal = state.NonTerminals[interval.Middle];
+                var state = metadata.States[nonTerminalStates[interval.Middle]];
 
                 il.MarkLabel(interval.Label);
 
                 if (interval.Low == interval.Middle)
                 {
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Ldc_I4, nonTerminal.Id);
+                    currentState.Load(il);
+                    il.Emit(OpCodes.Ldc_I4, state.ParserState.Id);
                     il.Emit(OpCodes.Bne_Un, interval.IsSingle ? defaultLabel : interval.Right);
                 }
                 else
                 {
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Ldc_I4, nonTerminal.Id);
+                    currentState.Load(il);
+                    il.Emit(OpCodes.Ldc_I4, state.ParserState.Id);
                     il.Emit(OpCodes.Blt, interval.Left);
 
-                    il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Ldc_I4, nonTerminal.Id);
+                    currentState.Load(il);
+                    il.Emit(OpCodes.Ldc_I4, state.ParserState.Id);
                     il.Emit(OpCodes.Bgt, interval.Right);
                 }
 
                 HandleNonTerminal(il, state, nonTerminal);
             }
 
-
             il.MarkLabel(defaultLabel);
-            ThrowParserException(il, () =>
-            {
-                il.Emit(OpCodes.Ldstr, Errors.InvalidNonTerminal("{0}"));
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Call, getNonTerminalNameMthd);
-                il.Emit(OpCodes.Call, ReflectionInfo.String_Format);
-            });
+            ThrowParserException(il, () => { il.Emit(OpCodes.Ldstr, Errors.InvalidNonTerminal(nonTerminal.Name)); });
         }
 
         private void HandleNonTerminal(ILGenerator il, StateMetadata state, NonTerminal nonTerminal)

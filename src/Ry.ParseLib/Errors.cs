@@ -40,6 +40,8 @@
 
         public static string InvalidState() => "Invalid state encountered.";
 
+        public static string InvalidToken() => $"Invalid token encountered.";
+
         public static string UnexpectedCharacter() => "Unexpected character encountered.";
 
         public static string TokenOutOfRange() => "The token is out of range.";
