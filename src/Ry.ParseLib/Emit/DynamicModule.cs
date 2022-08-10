@@ -13,23 +13,23 @@
         [ThreadStatic]
         private static ModuleBuilder module;
 
-        public static Type CreateStringParser(Type parent, Grammar grammar, string goal)
+        public static Type CreateStringParser(Type parent, Grammar grammar, string goal, string typeName = null)
         {
-            var target = DefineType(parent);
+            var target = DefineType(parent, typeName);
             var reducer = ParserReducer.CreateReducer(target, grammar);
             var builder = new ParserBuilder(target, reducer, grammar, goal);
             return builder.Build();
         }
 
-        public static Type CreateTextParser(Type parent, Grammar grammar, string goal)
+        public static Type CreateTextParser(Type parent, Grammar grammar, string goal, string typeName = null)
         {
-            var target = DefineType(parent);
+            var target = DefineType(parent, typeName);
             var reducer = ParserReducer.CreateReducer(target, grammar);
             var builder = new SequentialParserBuilder(target, reducer, grammar, goal);
             return builder.Build();
         }
 
-        private static TypeBuilder DefineType(Type parent)
+        private static TypeBuilder DefineType(Type parent, string typeName)
         {
             if (module == null)
             {
@@ -37,7 +37,7 @@
                 module = assembly.DefineDynamicModule($"Ry.ParseLib.Dynamic_{Environment.CurrentManagedThreadId}");
             }
 
-            return module.DefineType($"Type_{Guid.NewGuid()}", TypeAttributes.Public | TypeAttributes.Sealed, parent);
+            return module.DefineType(typeName ?? $"Type_{Guid.NewGuid()}", TypeAttributes.Public | TypeAttributes.Sealed, parent);
         }
     }
 }

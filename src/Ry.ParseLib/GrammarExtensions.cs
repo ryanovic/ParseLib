@@ -39,19 +39,19 @@
         /// <summary>
         /// Creates a type that represents a string parser.
         /// </summary>
-        public static Type CreateStringParser<T>(this Grammar grammar, string goal)
+        public static Type CreateStringParser<T>(this Grammar grammar, string goal, string typeName = null)
             where T : StringParser
         {
-            return DynamicModule.CreateStringParser(typeof(T), grammar, goal);
+            return DynamicModule.CreateStringParser(typeof(T), grammar, goal, typeName);
         }
 
         /// <summary>
         /// Creates a type that represents a string parser and returns a corresponding factory method.
         /// </summary>
-        public static Func<string, T> CreateStringParserFactory<T>(this Grammar grammar, string goal)
+        public static Func<string, T> CreateStringParserFactory<T>(this Grammar grammar, string goal, string typeName = null)
             where T : StringParser
         {
-            var type = CreateStringParser<T>(grammar, goal);
+            var type = CreateStringParser<T>(grammar, goal, typeName);
             var ctor = type.GetConstructor(new[] { typeof(string) });
 
             if (ctor == null)
@@ -71,19 +71,19 @@
         /// <summary>
         /// Creates a type that represents a text parser.
         /// </summary>
-        public static Type CreateTextParser<T>(this Grammar grammar, string goal)
+        public static Type CreateTextParser<T>(this Grammar grammar, string goal, string typeName = null)
             where T : TextParser
         {
-            return DynamicModule.CreateTextParser(typeof(T), grammar, goal);
+            return DynamicModule.CreateTextParser(typeof(T), grammar, goal, typeName);
         }
 
         /// <summary>
         /// Creates a type that represents a text parser and returns a corresponding factory method.
         /// </summary>
-        public static Func<TextReader, T> CreateTextParserFactory<T>(this Grammar grammar, string goal)
+        public static Func<TextReader, T> CreateTextParserFactory<T>(this Grammar grammar, string goal, string typeName = null)
             where T : TextParser
         {
-            var type = CreateTextParser<T>(grammar, goal);
+            var type = CreateTextParser<T>(grammar, goal, typeName);
             var ctor = type.GetConstructor(new[] { typeof(TextReader) });
 
             if (ctor == null)
